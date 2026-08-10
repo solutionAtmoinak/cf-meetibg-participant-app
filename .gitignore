@@ -1,0 +1,39 @@
+# Added by code-review-graph
+.code-review-graph/
+
+# dependencies
+node_modules/
+**/node_modules/
+
+# build output
+dist/
+**/dist/
+build/
+**/build/
+
+# env
+.env
+**/.env
+!.env.example
+!**/.env.example
+
+# local HTTPS dev certs (mkcert)
+certs/
+
+# logs
+npm-debug.log*
+*.log
+
+# editor
+.vscode/*
+!.vscode/extensions.json
+
+# test artifacts
+coverage/
+**/coverage/
+playwright-report/
+test-results/
+
+# tsc incremental build info
+*.tsbuildinfo
+**/*.tsbuildinfo
