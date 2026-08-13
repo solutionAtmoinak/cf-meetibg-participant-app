@@ -34,7 +34,7 @@ test('join flow reaches the backend, and a failed live connection is never silen
   await expect(page.getByTestId('toast-success').first()).toContainText('Joining');
 
   await expect(async () => {
-    const connecting = await page.getByText('Connecting to RealtimeKit').isVisible();
+    const connecting = await page.getByText('Connecting…').isVisible();
     const errorToast = await page.getByTestId('toast-error').count();
     expect(connecting || errorToast > 0).toBe(true);
   }).toPass({ timeout: 10_000 });

@@ -20,7 +20,12 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
 
   const push = useCallback((kind: Toast['kind'], message: string) => {
     const id = nextId.current++;
-    setToasts((prev) => [...prev, { id, kind, message }]);
+    // Defense in depth: a caller can end up passing something non-string at
+    // runtime (a raw API error object slipping past errorMessage(), etc.) —
+    // rendering that directly as a JSX child crashes the whole page, so
+    // never trust the static type here.
+    const safeMessage = typeof message === 'string' ? message : JSON.stringify(message);
+    setToasts((prev) => [...prev, { id, kind, message: safeMessage }]);
     setTimeout(() => {
       setToasts((prev) => prev.filter((t) => t.id !== id));
     }, 5000);

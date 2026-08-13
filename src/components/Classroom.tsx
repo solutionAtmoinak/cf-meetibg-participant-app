@@ -20,7 +20,7 @@ export function Classroom(): JSX.Element {
       // room connection exists — `meeting` never gets set, so without this
       // the UI would otherwise sit stuck on "Connecting…" forever. Bounce
       // back to the join screen instead.
-      notifyError(`Failed to initialize RealtimeKit session: ${err instanceof Error ? err.message : String(err)}`);
+      notifyError(`Failed to initialize session: ${err instanceof Error ? err.message : String(err)}`);
       navigate('/');
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -31,7 +31,7 @@ export function Classroom(): JSX.Element {
   }
 
   if (!meeting) {
-    return <div className="p-8 text-center">Connecting to RealtimeKit…</div>;
+    return <div className="p-8 text-center">Connecting…</div>;
   }
 
   return (

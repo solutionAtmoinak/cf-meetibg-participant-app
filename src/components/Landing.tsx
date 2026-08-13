@@ -1,9 +1,12 @@
-import { useState } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { FaClock } from 'react-icons/fa6';
 import { useNavigate } from 'react-router-dom';
 import { errorMessage } from '../lib/errorMessage.js';
+import { maskId } from '../lib/mask.js';
 import { storeSelfParticipantId } from '../lib/participantSession.js';
 import { joinSession } from '../lib/sessionApi.js';
 import { useToast } from '../lib/toast.js';
+import { btnSecondaryClass, fieldInputClass, fieldLabelClass, pageWrapClass, sectionClass, sectionHeadingClass } from './formStyles.js';
 
 export interface JoinedState {
   sessionId: string;
@@ -23,10 +26,13 @@ export interface StudentJoinParams {
 export function Landing(): JSX.Element {
   const navigate = useNavigate();
   const { notifyError, notifySuccess } = useToast();
-  const [name, setName] = useState('');
-  const [userId, setUserId] = useState('');
-  const [sessionId, setSessionId] = useState('');
   const [busy, setBusy] = useState(false);
+  const autoSubmittedRef = useRef(false);
+
+  const params = useMemo(() => new URLSearchParams(window.location.search), []);
+  const urlUserId = params.get('userId') ?? '';
+  const urlSessionId = params.get('sessionId') ?? '';
+  const urlName = params.get('name') ?? '';
 
   async function joinOperation(params: StudentJoinParams): Promise<void> {
     setBusy(true);
@@ -51,63 +57,87 @@ export function Landing(): JSX.Element {
     }
   }
 
-
-  function joinByFormSubmit() {
+  function joinWith(name: string, userId: string, sessionId: string): void {
     if (!name.trim()) return notifyError('Enter your name first');
     if (!userId.trim()) return notifyError('Enter a user id first');
     if (!sessionId.trim()) return notifyError('Enter a session id first');
 
-    joinOperation({ sessionId: sessionId.trim(), name: name.trim(), userId: userId.trim() });
+    void joinOperation({ sessionId: sessionId.trim(), name: name.trim(), userId: userId.trim() });
   }
 
+  function joinByFormSubmit(e: FormEvent<HTMLFormElement>): void {
+    e.preventDefault();
+    const data = new FormData(e.currentTarget);
+    joinWith(
+      urlName || String(data.get('name') ?? ''),
+      urlUserId || String(data.get('userId') ?? ''),
+      urlSessionId || String(data.get('sessionId') ?? '')
+    );
+  }
+
+
+  useEffect(() => {
+    if (autoSubmittedRef.current) return;
+    if (!urlName || !urlUserId || !urlSessionId) return;
+    autoSubmittedRef.current = true;
+    joinWith(urlName, urlUserId, urlSessionId);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   return (
-    <section className='h-screen flex justify-center items-center'>
-      <div className="max-w-105  p-6 bg-accent-soft rounded-lg shadow shadow-accent-hover">
-        <h1 className='text-2xl'>Join Your Classroom</h1>
-        <p className="text-text-dim mb-6">Student Join - Enter Your Name To join</p>
+    <div className={pageWrapClass}>
+      <div className="w-full max-w-120">
+        <section className={sectionClass}>
+          <h2 className={sectionHeadingClass}>
+            <FaClock /> Join Your Classroom
+          </h2>
+          <form onSubmit={joinByFormSubmit}>
+            <label className={fieldLabelClass}>
+              Your name
+              <input
+                name="name"
+                defaultValue={urlName || undefined}
+                disabled={Boolean(urlName)}
+                placeholder="Bob"
+                data-testid="name-input"
+                className={fieldInputClass}
+              />
+            </label>
 
-        <label className="flex flex-col gap-1 mb-3 text-[0.9rem]">
-          Your name
-          <input
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            placeholder="Bob"
-            data-testid="name-input"
-            className="p-2 text-base border border-border rounded"
-          />
-        </label>
+            <label className={fieldLabelClass}>
+              User id
+              {urlUserId ? (
+                <input value={maskId(urlUserId)} disabled readOnly data-testid="user-id-input" className={fieldInputClass} />
+              ) : (
+                <input
+                  name="userId"
+                  placeholder="System user id"
+                  data-testid="user-id-input"
+                  className={fieldInputClass}
+                />
+              )}
+            </label>
 
-        <label className="flex flex-col gap-1 mb-3 text-[0.9rem]">
-          User id
-          <input
-            value={userId}
-            onChange={(e) => setUserId(e.target.value)}
-            placeholder="System user id"
-            data-testid="user-id-input"
-            className="p-2 text-base border border-border rounded"
-          />
-        </label>
+            <label className={fieldLabelClass}>
+              Session id
+              {urlSessionId ? (
+                <input value={maskId(urlSessionId)} disabled readOnly data-testid="session-id-input" className={fieldInputClass} />
+              ) : (
+                <input
+                  name="sessionId"
+                  placeholder="session id from your teacher"
+                  data-testid="session-id-input"
+                  className={fieldInputClass}
+                />
+              )}
+            </label>
 
-        <label className="flex flex-col gap-1 mb-3 text-[0.9rem]">
-          Session id
-          <input
-            value={sessionId}
-            onChange={(e) => setSessionId(e.target.value)}
-            placeholder="session id from your teacher"
-            data-testid="session-id-input"
-            className="p-2 text-base border border-border rounded"
-          />
-        </label>
-
-        <button
-          onClick={joinByFormSubmit}
-          disabled={busy}
-          data-testid="join-session-button"
-          className="rounded-md border border-border bg-accent px-[0.9rem] py-2 text-[0.9rem] text-white cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-4"
-        >
-          {busy ? 'Joining…' : 'Join Classroom'}
-        </button>
+            <button type="submit" className={btnSecondaryClass} disabled={busy} data-testid="join-session-button">
+              {busy ? 'Joining…' : 'Join Classroom'}
+            </button>
+          </form>
+        </section>
       </div>
-    </section>
+    </div>
   );
 }
