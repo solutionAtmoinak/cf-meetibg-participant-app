@@ -1,9 +1,9 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { joinSession } from '../lib/sessionApi.js';
 import { errorMessage } from '../lib/errorMessage.js';
-import { useToast } from '../lib/toast.js';
 import { storeSelfParticipantId } from '../lib/participantSession.js';
+import { joinSession } from '../lib/sessionApi.js';
+import { useToast } from '../lib/toast.js';
 
 export interface JoinedState {
   sessionId: string;
@@ -14,6 +14,12 @@ export interface JoinedState {
   participantId: string;
 }
 
+export interface StudentJoinParams {
+  sessionId: string;
+  name: string;
+  userId: string;
+}
+
 export function Landing(): JSX.Element {
   const navigate = useNavigate();
   const { notifyError, notifySuccess } = useToast();
@@ -22,21 +28,19 @@ export function Landing(): JSX.Element {
   const [sessionId, setSessionId] = useState('');
   const [busy, setBusy] = useState(false);
 
-  async function handleJoin(): Promise<void> {
-    if (!name.trim()) return notifyError('Enter your name first');
-    if (!userId.trim()) return notifyError('Enter a user id first');
-    if (!sessionId.trim()) return notifyError('Enter a session id first');
+  async function joinOperation(params: StudentJoinParams): Promise<void> {
     setBusy(true);
+
     try {
-      const join = await joinSession(sessionId.trim(), name.trim(), userId.trim());
-      storeSelfParticipantId(sessionId.trim(), join.participantId);
+      const join = await joinSession(params.sessionId, params.name, params.userId);
+      storeSelfParticipantId(params.sessionId, join.participantId);
       notifySuccess(`Joining "${join.meetingTitle}"`);
       const joined: JoinedState = {
-        sessionId: sessionId.trim(),
+        sessionId: params.sessionId,
         authToken: join.authToken,
         presetName: join.presetName,
         meetingTitle: join.meetingTitle,
-        name: name.trim(),
+        name: params.name,
         participantId: join.participantId,
       };
       navigate('/room', { state: joined });
@@ -47,52 +51,63 @@ export function Landing(): JSX.Element {
     }
   }
 
+
+  function joinByFormSubmit() {
+    if (!name.trim()) return notifyError('Enter your name first');
+    if (!userId.trim()) return notifyError('Enter a user id first');
+    if (!sessionId.trim()) return notifyError('Enter a session id first');
+
+    joinOperation({ sessionId: sessionId.trim(), name: name.trim(), userId: userId.trim() });
+  }
+
   return (
-    <div className="max-w-105 my-16 mx-auto p-6">
-      <h1>RealtimeKit QA — Participant</h1>
-      <p className="opacity-70">Student / viewer test harness. No account needed — just a name.</p>
+    <section className='h-screen flex justify-center items-center'>
+      <div className="max-w-105  p-6 bg-accent-soft rounded-lg shadow shadow-accent-hover">
+        <h1 className='text-2xl'>Join Your Classroom</h1>
+        <p className="text-text-dim mb-6">Student Join - Enter Your Name To join</p>
 
-      <label className="flex flex-col gap-1 mb-3 text-[0.9rem]">
-        Your name
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          placeholder="Bob"
-          data-testid="name-input"
-          className="p-2 text-base border border-border rounded"
-        />
-      </label>
+        <label className="flex flex-col gap-1 mb-3 text-[0.9rem]">
+          Your name
+          <input
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Bob"
+            data-testid="name-input"
+            className="p-2 text-base border border-border rounded"
+          />
+        </label>
 
-      <label className="flex flex-col gap-1 mb-3 text-[0.9rem]">
-        User id
-        <input
-          value={userId}
-          onChange={(e) => setUserId(e.target.value)}
-          placeholder="Stable id from your own system"
-          data-testid="user-id-input"
-          className="p-2 text-base border border-border rounded"
-        />
-      </label>
+        <label className="flex flex-col gap-1 mb-3 text-[0.9rem]">
+          User id
+          <input
+            value={userId}
+            onChange={(e) => setUserId(e.target.value)}
+            placeholder="System user id"
+            data-testid="user-id-input"
+            className="p-2 text-base border border-border rounded"
+          />
+        </label>
 
-      <label className="flex flex-col gap-1 mb-3 text-[0.9rem]">
-        Session id
-        <input
-          value={sessionId}
-          onChange={(e) => setSessionId(e.target.value)}
-          placeholder="session id from your teacher"
-          data-testid="session-id-input"
-          className="p-2 text-base border border-border rounded"
-        />
-      </label>
+        <label className="flex flex-col gap-1 mb-3 text-[0.9rem]">
+          Session id
+          <input
+            value={sessionId}
+            onChange={(e) => setSessionId(e.target.value)}
+            placeholder="session id from your teacher"
+            data-testid="session-id-input"
+            className="p-2 text-base border border-border rounded"
+          />
+        </label>
 
-      <button
-        onClick={handleJoin}
-        disabled={busy}
-        data-testid="join-session-button"
-        className="rounded-md border border-border bg-accent px-[0.9rem] py-2 text-[0.9rem] text-white cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-      >
-        {busy ? 'Joining…' : 'Join Classroom'}
-      </button>
-    </div>
+        <button
+          onClick={joinByFormSubmit}
+          disabled={busy}
+          data-testid="join-session-button"
+          className="rounded-md border border-border bg-accent px-[0.9rem] py-2 text-[0.9rem] text-white cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed mt-4"
+        >
+          {busy ? 'Joining…' : 'Join Classroom'}
+        </button>
+      </div>
+    </section>
   );
 }
