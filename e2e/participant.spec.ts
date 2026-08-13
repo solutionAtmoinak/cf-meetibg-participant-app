@@ -27,6 +27,7 @@ test('join flow reaches the backend, and a failed live connection is never silen
   await expect(page.getByTestId('name-input')).toBeVisible();
 
   await page.getByTestId('name-input').fill('Bob');
+  await page.getByTestId('user-id-input').fill('student-bob');
   await page.getByTestId('session-id-input').fill(sessionId);
   await page.getByTestId('join-session-button').click();
 
@@ -44,6 +45,7 @@ test('join flow reaches the backend, and a failed live connection is never silen
 test('join fails clearly against an unknown session id', async ({ page }) => {
   await page.goto('/');
   await page.getByTestId('name-input').fill('Bob');
+  await page.getByTestId('user-id-input').fill('student-bob');
   await page.getByTestId('session-id-input').fill('does-not-exist');
   await page.getByTestId('join-session-button').click();
   await expect(page.getByTestId('toast-error').first()).toContainText('No session found');

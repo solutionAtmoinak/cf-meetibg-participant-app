@@ -1,18 +1,20 @@
 import { useRealtimeKitMeeting } from '@cloudflare/realtimekit-react';
 import { useEffect, useRef, useState } from 'react';
-import { useReportedAction, useToast } from '../lib/toast.js';
-import { ChatPanel } from './ChatPanel.js';
+import { useToast } from '../lib/toast.js';
 import { EnableSoundBanner } from './EnableSoundBanner.js';
 import type { JoinedState } from './Landing.js';
-import { StageControls } from './StageControls.js';
-import { TeacherView } from './TeacherView.js';
+import { StudentTopBar } from './StudentTopBar.js';
+import { StudentStage } from './StudentStage.js';
+import { StudentBottomBar } from './StudentBottomBar.js';
+import { StudentChatSidebar } from './StudentChatSidebar.js';
 import { WaitingScreen } from './WaitingScreen.js';
 
 export function ClassroomUI({ joined, onLeft }: { joined: JoinedState; onLeft: () => void }): JSX.Element {
   const { meeting } = useRealtimeKitMeeting();
   const { notifyError, notifySuccess } = useToast();
-  const reported = useReportedAction();
   const [waiting, setWaiting] = useState(false);
+  const [chatOpen, setChatOpen] = useState(true);
+  const [unreadChatCount, setUnreadChatCount] = useState(0);
   const hasLeftRef = useRef(false);
   const hasJoinedRef = useRef(false);
 
@@ -27,7 +29,17 @@ export function ClassroomUI({ joined, onLeft }: { joined: JoinedState; onLeft: (
       onLeft();
     };
     const onWaitlisted = (): void => setWaiting(true);
-    const onRoomJoined = (): void => setWaiting(false);
+    const onRoomJoined = (): void => {
+      setWaiting(false);
+      // A student is receive-only until granted stage access (raise hand),
+      // and never gets camera/screen at all — but some presets auto-publish
+      // media on join regardless of that. Force everything off right after
+      // joining/rejoining so a preset default can never put a student on
+      // air without going through the raise-hand flow.
+      void meeting.self.disableAudio().catch(() => {});
+      void meeting.self.disableVideo().catch(() => {});
+      void meeting.self.disableScreenShare().catch(() => {});
+    };
     const onRoomLeft = (payload: { state: string }): void => {
       if (payload.state === 'kicked') notifyError('You were removed from the session');
       else if (payload.state === 'ended') notifySuccess('The session has ended');
@@ -88,30 +100,55 @@ export function ClassroomUI({ joined, onLeft }: { joined: JoinedState; onLeft: (
   useEffect(() => {
     if (hasJoinedRef.current) return;
     hasJoinedRef.current = true;
-    void meeting.join();
+    meeting.join().catch((err: unknown) => {
+      // A validly-formatted but expired/invalid/revoked authToken fails
+      // here (server-side rejection) rather than at initMeeting — no
+      // 'roomLeft' event fires for this since the room was never joined, so
+      // without an explicit catch this was an unhandled rejection that left
+      // the classroom UI stuck.
+      if (hasLeftRef.current) return;
+      hasLeftRef.current = true;
+      notifyError(`Failed to join the session: ${err instanceof Error ? err.message : String(err)}`);
+      onLeft();
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [meeting]);
 
-  const leave = reported('You left the session', async () => {
+  useEffect(() => {
+    if (chatOpen) setUnreadChatCount(0);
+  }, [chatOpen]);
+
+  useEffect(() => {
+    const onChatUpdate = (): void => {
+      if (!chatOpen) setUnreadChatCount((count) => count + 1);
+    };
+    meeting.chat.on('chatUpdate', onChatUpdate);
+    return () => {
+      meeting.chat.off('chatUpdate', onChatUpdate);
+    };
+  }, [meeting, chatOpen]);
+
+  const leave = async (): Promise<void> => {
     await meeting.leave();
     onLeft();
-  });
+  };
 
   if (waiting) {
     return <WaitingScreen meetingTitle={joined.meetingTitle} />;
   }
 
   return (
-    <div className="classroom participant-classroom">
+    <div className="relative h-screen w-full overflow-hidden bg-bg">
       <EnableSoundBanner />
-      <div className="panel-header">
-        <h1>{joined.meetingTitle}</h1>
-        <button onClick={leave} className="danger" data-testid="leave-session">
-          Leave
-        </button>
-      </div>
-      <TeacherView />
-      <StageControls />
-      <ChatPanel />
+      <StudentTopBar meetingTitle={joined.meetingTitle} />
+      <StudentStage sessionId={joined.sessionId} />
+      <StudentChatSidebar open={chatOpen} onClose={() => setChatOpen(false)} selfParticipantId={joined.participantId} />
+      <StudentBottomBar
+        chatOpen={chatOpen}
+        onToggleChat={() => setChatOpen((v) => !v)}
+        unreadChatCount={unreadChatCount}
+        onLeave={leave}
+      />
     </div>
   );
 }

@@ -61,6 +61,10 @@ const server = createServer(async (req, res) => {
   if (method === 'POST' && joinMatch) {
     const session = sessions.get(joinMatch[1]);
     if (!session) return send(res, 404, { success: false, error: 'No session found' });
+    const body = await readBody(req);
+    if (!body.custom_participant_id) {
+      return send(res, 400, { success: false, error: 'custom_participant_id is required — pass the user\'s stable id from your own system' });
+    }
     const isTeacher = teacherSecret.length > 0 && req.headers['x-teacher-secret'] === teacherSecret;
     return send(res, 200, {
       success: true,
@@ -68,6 +72,7 @@ const server = createServer(async (req, res) => {
       participantId: `p-${Date.now()}`,
       presetName: isTeacher ? 'webinar-teacher-host' : 'webinar-student-viewer',
       role: isTeacher ? 'teacher' : 'student',
+      rejoined: false,
     });
   }
 

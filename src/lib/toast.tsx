@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useRef, useState, type ReactNode } from 'react';
+import { errorMessage } from './errorMessage.js';
 
 interface Toast {
   id: number;
@@ -33,9 +34,15 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
   return (
     <ToastContext.Provider value={value}>
       {children}
-      <div className="toast-container" role="status" aria-live="polite">
+      <div className="fixed bottom-4 right-4 flex flex-col gap-2 z-1000" role="status" aria-live="polite">
         {toasts.map((t) => (
-          <div key={t.id} className={`toast toast-${t.kind}`} data-testid={`toast-${t.kind}`}>
+          <div
+            key={t.id}
+            className={`rounded-md px-4 py-[0.6rem] text-white text-[0.9rem] shadow-[0_2px_8px_rgba(0,0,0,0.2)] ${
+              t.kind === 'success' ? 'bg-[#16a34a]' : 'bg-[#dc2626]'
+            }`}
+            data-testid={`toast-${t.kind}`}
+          >
             {t.message}
           </div>
         ))}
@@ -62,7 +69,7 @@ export function useReportedAction(): <Args extends unknown[]>(
         await action(...args);
         notifySuccess(successMessage);
       } catch (err) {
-        notifyError(err instanceof Error ? err.message : String(err));
+        notifyError(errorMessage(err, String(err)));
       }
     };
 }
