@@ -1,7 +1,7 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
-import { Landing } from './components/Landing.js';
-import { Classroom } from './components/Classroom.js';
-import { ErrorBoundary } from './components/ErrorBoundary.js';
+import { Landing } from './pages/Landing.js';
+import { Classroom } from './pages/Classroom.js';
+import { ErrorBoundary } from './components/common/ErrorBoundary.js';
 import { ToastProvider } from './lib/toast.js';
 
 export function App(): JSX.Element {

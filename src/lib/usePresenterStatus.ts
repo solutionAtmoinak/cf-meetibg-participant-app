@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { getPresenterStatus } from './presenterApi.js';
+import { getPresenterStatus } from '../api/presenterApi.js';
 
 const POLL_MS = 4000;
 

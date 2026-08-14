@@ -1,8 +1,8 @@
 import { useRealtimeKitMeeting } from '@cloudflare/realtimekit-react';
 import { useEffect, useRef, useState } from 'react';
-import { useToast } from '../lib/toast.js';
+import { useToast } from '../../lib/toast.js';
 import { EnableSoundBanner } from './EnableSoundBanner.js';
-import type { JoinedState } from './Landing.js';
+import type { JoinedState } from '../../types.js';
 import { StudentTopBar } from './StudentTopBar.js';
 import { StudentStage } from './StudentStage.js';
 import { StudentBottomBar } from './StudentBottomBar.js';

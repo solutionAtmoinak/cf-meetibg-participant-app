@@ -1,8 +1,8 @@
 import { useEffect } from 'react';
 import { useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { RealtimeKitProvider, useRealtimeKitClient } from '@cloudflare/realtimekit-react';
-import type { JoinedState } from './Landing.js';
-import { ClassroomUI } from './ClassroomUI.js';
+import type { JoinedState } from '../types.js';
+import { ClassroomUI } from '../components/classroom/ClassroomUI.js';
 import { useToast } from '../lib/toast.js';
 
 export function Classroom(): JSX.Element {

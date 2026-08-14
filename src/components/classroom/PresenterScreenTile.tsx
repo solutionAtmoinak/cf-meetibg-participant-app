@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { FiMaximize2, FiMinimize2 } from 'react-icons/fi';
-import { useMaximize } from '../lib/useMaximize.js';
-import { useNetworkSpeed } from '../lib/useNetworkSpeed.js';
+import { useMaximize } from '../../lib/useMaximize.js';
+import { useNetworkSpeed } from '../../lib/useNetworkSpeed.js';
 
 /**
  * RealtimeKit only auto-wires registerVideoElement() to the camera track —

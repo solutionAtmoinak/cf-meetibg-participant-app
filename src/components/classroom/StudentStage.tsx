@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useRealtimeKitMeeting, useRealtimeKitSelector } from '@cloudflare/realtimekit-react';
 import { FiMic, FiMicOff } from 'react-icons/fi';
-import { usePresenterStatus } from '../lib/usePresenterStatus.js';
+import { usePresenterStatus } from '../../lib/usePresenterStatus.js';
 import { PresenterScreenTile } from './PresenterScreenTile.js';
 import { PresenterCameraTile } from './PresenterCameraTile.js';
 

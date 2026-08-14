@@ -4,18 +4,17 @@ import { useNavigate } from 'react-router-dom';
 import { errorMessage } from '../lib/errorMessage.js';
 import { maskId } from '../lib/mask.js';
 import { storeSelfParticipantId } from '../lib/participantSession.js';
-import { joinSession } from '../lib/sessionApi.js';
+import { joinSession } from '../api/sessionApi.js';
 import { useToast } from '../lib/toast.js';
-import { btnSecondaryClass, fieldInputClass, fieldLabelClass, pageWrapClass, sectionClass, sectionHeadingClass } from './formStyles.js';
-
-export interface JoinedState {
-  sessionId: string;
-  authToken: string;
-  presetName: string;
-  meetingTitle: string;
-  name: string;
-  participantId: string;
-}
+import type { JoinedState } from '../types.js';
+import {
+  btnSecondaryClass,
+  fieldInputClass,
+  fieldLabelClass,
+  pageWrapClass,
+  sectionClass,
+  sectionHeadingClass,
+} from '../components/common/formStyles.js';
 
 export interface StudentJoinParams {
   sessionId: string;

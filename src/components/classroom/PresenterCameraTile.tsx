@@ -1,8 +1,8 @@
 import { useEffect, useRef } from 'react';
 import type { RTKParticipant } from '@cloudflare/realtimekit-react';
 import { FiMaximize2, FiMinimize2 } from 'react-icons/fi';
-import { useMaximize } from '../lib/useMaximize.js';
-import { useNetworkSpeed } from '../lib/useNetworkSpeed.js';
+import { useMaximize } from '../../lib/useMaximize.js';
+import { useNetworkSpeed } from '../../lib/useNetworkSpeed.js';
 
 const badgeClass = 'text-[0.68rem] py-[0.12rem] px-[0.5rem] rounded-pill bg-white/15 text-white whitespace-nowrap shrink-0';
 

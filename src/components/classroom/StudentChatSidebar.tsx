@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useRealtimeKitMeeting, useRealtimeKitSelector } from '@cloudflare/realtimekit-react';
 import { FiX, FiSend } from 'react-icons/fi';
 import { HiOutlineSpeakerphone } from 'react-icons/hi';
-import { useReportedAction } from '../lib/toast.js';
-import { roleLabel } from '../lib/roleLabel.js';
+import { useReportedAction } from '../../lib/toast.js';
+import { roleLabel } from '../../lib/roleLabel.js';
 
 interface ChatMessageLike {
   id: string;
