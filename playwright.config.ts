@@ -19,7 +19,7 @@ export default defineConfig({
     {
       command: `npx vite --port ${FRONTEND_PORT}`,
       port: FRONTEND_PORT,
-      env: { VITE_BACKEND_URL: `http://localhost:${MOCK_WORKER_PORT}` },
+      env: { VITE_API_BASE_URL: `http://localhost:${MOCK_WORKER_PORT}` },
       reuseExistingServer: false,
     },
   ],

@@ -3,12 +3,13 @@
 // host-only actions, and this file is the participant app's entire surface
 // for talking to the backend.
 import axios from 'axios';
-import { BACKEND_URL } from './apiConfig.js';
+import { getAppConfig } from './apiConfig.js';
 import type { JoinResult, WorkerMeeting } from './apiTypes.js';
 
 export async function joinSession(sessionId: string, name: string, userId: string): Promise<JoinResult> {
+  const { backendUrl } = await getAppConfig();
   const { data: sessionData } = await axios.get<{ session: WorkerMeeting }>(
-    `${BACKEND_URL}/api/sessions/${encodeURIComponent(sessionId)}`
+    `${backendUrl}/api/sessions/${encodeURIComponent(sessionId)}`
   );
   const { data } = await axios.post<{
     authToken: string;
@@ -16,7 +17,7 @@ export async function joinSession(sessionId: string, name: string, userId: strin
     presetName: string;
     rejoined: boolean;
   }>(
-    `${BACKEND_URL}/api/sessions/${encodeURIComponent(sessionId)}/join`,
+    `${backendUrl}/api/sessions/${encodeURIComponent(sessionId)}/join`,
     // custom_participant_id is required by the Worker so it can recognize a
     // returning user instead of minting a fresh RealtimeKit participant on
     // every join — the caller supplies it (from a form field), not us.

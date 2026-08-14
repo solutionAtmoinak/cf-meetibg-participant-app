@@ -42,6 +42,12 @@ const server = createServer(async (req, res) => {
 
   if (method === 'OPTIONS') return send(res, 204, {});
 
+  if (method === 'POST' && pathname === '/AnonymousDataGet/ExecuteJson/SPMasterAdminAnonymous/4') {
+    return send(res, 200, {
+      WorkerUrl: `http://localhost:${port}`,
+    });
+  }
+
   if (method === 'POST' && pathname === '/api/sessions') {
     const body = await readBody(req);
     const id = `mock-session-${++counter}`;
