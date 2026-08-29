@@ -154,6 +154,16 @@ export function StudentStage({ sessionId }: { sessionId: string }): JSX.Element 
           )}
           {screenOn && cameraOn && <PresenterCameraTile participant={presenter} pip />}
 
+          {/* The one label kept on the stage. It earns its place by carrying
+              MIC STATUS — a teacher who is muted by accident is the single
+              most common "we can't hear you" moment, and this is where a
+              student sees it.
+              It lives here rather than inside the tiles, so it is outside the
+              maximized/fullscreen element and disappears by itself when a
+              student goes fullscreen (z-20 under the tile's z-50, and not in
+              the fullscreened subtree at all). Fullscreen therefore stays
+              exactly what was asked for: presentation plus the restore
+              button, nothing more. */}
           <div
             className="absolute top-[4.75rem] left-4 z-20 flex items-center gap-2 py-2 px-3 rounded-md bg-black/55 border border-white/15 backdrop-blur-sm max-[720px]:top-[4.5rem] max-[720px]:left-3"
             data-testid="presenter-name-tag"
@@ -169,7 +179,6 @@ export function StudentStage({ sessionId }: { sessionId: string }): JSX.Element 
               </span>
             </span>
           </div>
-
         </>
       ) : (
         <div className="absolute inset-0 flex items-center justify-center text-center px-6">

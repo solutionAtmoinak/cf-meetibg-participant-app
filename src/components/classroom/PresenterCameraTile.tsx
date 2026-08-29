@@ -3,8 +3,6 @@ import type { RTKParticipant } from '@cloudflare/realtimekit-react';
 import { FiMaximize2, FiMinimize2 } from 'react-icons/fi';
 import { useMaximize } from '../../lib/useMaximize.js';
 
-const badgeClass = 'text-[0.68rem] py-[0.12rem] px-[0.5rem] rounded-pill bg-white/15 text-white whitespace-nowrap shrink-0';
-
 /**
  * The active presenter's camera. Renders as the primary stage when there's
  * no screen share, or as a small secondary/PIP tile alongside the screen
@@ -44,7 +42,8 @@ export function PresenterCameraTile({
   }, [participant, participant.videoEnabled, participant.videoTrack?.id]);
 
   const positionClass = isMaximized
-    ? 'fixed inset-0 z-50 bg-black flex items-center justify-center'
+    ? // Stage colour, not black — see the note in PresenterScreenTile.
+      'fixed inset-0 z-50 bg-bg flex items-center justify-center'
     : pip
       ? 'absolute z-20 bottom-4 left-4 w-[clamp(120px,20vw,200px)] aspect-4/3 rounded-md overflow-hidden border border-border-strong shadow-float bg-black max-[720px]:w-[clamp(96px,30vw,140px)] max-[720px]:bottom-24'
       : 'relative w-full h-full flex items-center justify-center overflow-hidden bg-black';
@@ -67,16 +66,10 @@ export function PresenterCameraTile({
         muted
         className={expanded ? 'max-w-full max-h-full object-contain block' : 'w-full h-full object-cover block'}
       />
-      {expanded ? (
-        <div className="absolute left-1/2 -translate-x-1/2 bottom-4 py-[0.45rem] px-[0.8rem] rounded-pill bg-black/70 text-white text-[0.82rem] font-medium flex gap-[0.5rem] items-center max-w-[calc(100%-2rem)]">
-          <span className="truncate">{participant.name}</span>
-          {!participant.videoEnabled && <span className={badgeClass}>camera off</span>}
-        </div>
-      ) : (
-        <div className="absolute bottom-0 left-0 right-0 py-1 px-2 bg-[linear-gradient(0deg,rgba(0,0,0,0.75),transparent)] text-white text-[0.68rem] font-medium truncate">
-          {participant.name}
-        </div>
-      )}
+      {/* No name caption and no "camera off" badge, in either the full or PIP
+          size. There is exactly one presenter on this stage, so labelling them
+          told the student nothing they didn't already know while covering part
+          of the picture. */}
       <button
         className={`absolute top-2 right-2 z-10 flex items-center justify-center rounded-full bg-black/60 border border-white/25 text-white cursor-pointer transition-colors hover:bg-black/80 ${
           expanded && !pip ? 'w-9 h-9' : 'w-6 h-6'
