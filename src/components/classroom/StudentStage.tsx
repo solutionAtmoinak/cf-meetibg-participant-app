@@ -24,10 +24,37 @@ export function StudentStage({ sessionId }: { sessionId: string }): JSX.Element 
   // main-thread churn competes with the video decoder and shows up as
   // playback jank. Select a stable string signature of only the fields the
   // stage actually reads, and materialize the array only when it changes.
+  // The track ids are part of the signature, not just the enabled flags, and
+  // that is load-bearing — it is the difference between hearing the teacher
+  // and not.
+  //
+  // The SDK sets `audioEnabled` from the socket's producer list the moment a
+  // peer joins the media room, which happens BEFORE the WebRTC consumer for
+  // that peer exists — so at that point `participant.audioTrack` is still
+  // undefined. The real track is attached later, in processNewConsumer, which
+  // then calls setAudioEnabled() again and emits a second 'audioUpdate'. The
+  // React binding does re-run this selector on that event.
+  //
+  // But with only the boolean flags in the signature, that second pass
+  // produced a byte-identical string (audioEnabled was already 1), the
+  // selector's `!==` comparison saw no change, and no re-render happened. The
+  // stage therefore kept rendering with `audioTrack === undefined` forever:
+  // the mic icon showed "on" (it reads the flag) while PresenterAudio had
+  // nothing to bind and the student heard silence. Same race for videoTrack
+  // and screenShareTracks, which is why a share could stay black.
+  //
+  // Including the ids re-renders exactly when a track appears, changes, or
+  // goes away — and still not on activeSpeaker/audio-level chatter, so the
+  // playback-jank fix this selector exists for is preserved.
   const participantsSignature = useRealtimeKitSelector((m) =>
     m.participants.joined
       .toArray()
-      .map((p) => `${p.id}:${p.name}:${p.videoEnabled ? 1 : 0}${p.screenShareEnabled ? 1 : 0}${p.audioEnabled ? 1 : 0}`)
+      .map(
+        (p) =>
+          `${p.id}:${p.name}:${p.videoEnabled ? 1 : 0}${p.screenShareEnabled ? 1 : 0}${p.audioEnabled ? 1 : 0}` +
+          `:${p.audioTrack?.id ?? '-'}:${p.videoTrack?.id ?? '-'}` +
+          `:${p.screenShareTracks?.video?.id ?? '-'}:${p.screenShareTracks?.audio?.id ?? '-'}`
+      )
       .join('|')
   );
   const participants = useMemo(

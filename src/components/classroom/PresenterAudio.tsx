@@ -56,6 +56,14 @@ export function PresenterAudio({ presenter }: { presenter: RTKParticipant }): JS
         el.srcObject = null;
         return;
       }
+      // Idempotent: re-assigning srcObject restarts playback, which is an
+      // audible hiccup. If this element is already carrying this exact track,
+      // leave the stream alone and only make sure it is running.
+      const current = el.srcObject as MediaStream | null;
+      if (current?.getAudioTracks().some((t) => t.id === track.id)) {
+        if (el.paused) play(el);
+        return;
+      }
       const stream = new MediaStream();
       stream.addTrack(track);
       el.srcObject = stream;
@@ -64,13 +72,47 @@ export function PresenterAudio({ presenter }: { presenter: RTKParticipant }): JS
     [play]
   );
 
-  const micTrack = !isSelf && presenter.audioEnabled ? presenter.audioTrack : undefined;
-  const rawScreenTrack = !isSelf && presenter.screenShareEnabled ? presenter.screenShareTracks.audio : undefined;
-  // Never play the same track through both elements. Two elements carrying
-  // one voice a few tens of milliseconds apart is indistinguishable from an
-  // echo — which is exactly what was reported. Compared by track id, since
-  // the SDK can hand back a different wrapper for the same underlying track.
-  const screenTrack = rawScreenTrack && rawScreenTrack.id !== micTrack?.id ? rawScreenTrack : undefined;
+  // Read straight off the participant rather than from props-at-render-time.
+  //
+  // The SDK attaches a remote participant's audioTrack in processNewConsumer,
+  // *after* it has already flipped audioEnabled from the socket's producer
+  // list — so there is a window where audioEnabled is true and audioTrack is
+  // still undefined. Binding once from a render that landed inside that
+  // window leaves the element empty forever, which is silence with a lit mic
+  // icon. Subscribing to the participant's own 'audioUpdate' /
+  // 'screenShareUpdate' events closes it: the SDK emits both with the track
+  // attached, so this re-binds the moment the track actually exists,
+  // independent of whether the stage above happened to re-render.
+  const [{ micTrack, screenTrack }, setTracks] = useState<{
+    micTrack?: MediaStreamTrack;
+    screenTrack?: MediaStreamTrack;
+  }>({});
+
+  useEffect(() => {
+    const readTracks = (): void => {
+      const mic = !isSelf && presenter.audioEnabled ? presenter.audioTrack : undefined;
+      const rawScreen = !isSelf && presenter.screenShareEnabled ? presenter.screenShareTracks?.audio : undefined;
+      // Never play the same track through both elements. Two elements
+      // carrying one voice a few tens of milliseconds apart is
+      // indistinguishable from an echo — which is exactly what was reported.
+      // Compared by id, since the SDK can hand back a different wrapper for
+      // the same underlying track.
+      const screen = rawScreen && rawScreen.id !== mic?.id ? rawScreen : undefined;
+      setTracks((prev) =>
+        prev.micTrack?.id === mic?.id && prev.screenTrack?.id === screen?.id
+          ? prev // no identity change — don't re-render, don't restart audio
+          : { micTrack: mic, screenTrack: screen }
+      );
+    };
+
+    readTracks();
+    presenter.on('audioUpdate', readTracks);
+    presenter.on('screenShareUpdate', readTracks);
+    return () => {
+      presenter.off('audioUpdate', readTracks);
+      presenter.off('screenShareUpdate', readTracks);
+    };
+  }, [presenter, isSelf]);
 
   useEffect(() => {
     bind(micRef.current, micTrack);
