@@ -201,7 +201,7 @@ export function PresenterAudio({ presenter }: { presenter?: RTKParticipant }): J
 
       {blocked && (
         <div
-          className="absolute top-4 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 pt-[0.55rem] pr-[0.6rem] pb-[0.55rem] pl-4 rounded-pill bg-warning text-[#221200] text-[0.85rem] font-medium shadow-float"
+          className="absolute top-4 left-1/2 -translate-x-1/2 z-40 flex items-center gap-3 pt-[0.55rem] pr-[0.6rem] pb-[0.55rem] pl-4 rounded-pill bg-warning text-white text-[0.85rem] font-medium shadow-float"
           role="alert"
         >
           <FiVolumeX size={16} />
@@ -215,7 +215,7 @@ export function PresenterAudio({ presenter }: { presenter?: RTKParticipant }): J
               attemptPlay(screenRef.current);
             }}
             data-testid="enable-sound"
-            className="bg-black/85 text-white border-none font-semibold py-[0.4rem] px-[0.8rem] rounded-pill cursor-pointer text-[0.8rem]"
+            className="bg-panel-bg-solid text-text border-none font-semibold py-[0.4rem] px-[0.8rem] rounded-pill cursor-pointer text-[0.8rem]"
           >
             Listen
           </button>

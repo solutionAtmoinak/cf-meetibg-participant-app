@@ -44,8 +44,8 @@ export function PresenterScreenTile({ sharer }: { sharer: ScreenSharer }): JSX.E
             // never matches the student's aspect ratio, so there is always a
             // band above and below it; against black those bands read as two
             // hard bars framing the content, which is what looked wrong.
-            // Matching the classroom background makes them read as page.
-            'fixed inset-0 z-50 bg-bg flex items-center justify-center'
+            // Sitting them on the stage tint makes them read as page.
+            'fixed inset-0 z-50 bg-stage flex items-center justify-center'
           : 'relative w-full h-full flex items-center justify-center'
       }
     >
@@ -56,7 +56,7 @@ export function PresenterScreenTile({ sharer }: { sharer: ScreenSharer }): JSX.E
           teacher's content, and a caption sitting on top of it (or in the
           letterbox band beside it) just competes with the lesson. */}
       <button
-        className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full flex items-center justify-center bg-black/60 border border-white/25 text-white cursor-pointer transition-colors hover:bg-black/80"
+        className="absolute top-3 right-3 z-10 w-9 h-9 rounded-full flex items-center justify-center bg-panel-bg border border-border text-text cursor-pointer transition-colors hover:bg-panel-bg-solid hover:border-border-strong"
         onClick={toggleMaximize}
         aria-label={isMaximized ? 'Restore shared screen' : 'Maximize shared screen'}
         aria-pressed={isMaximized}

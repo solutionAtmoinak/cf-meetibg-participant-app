@@ -6,7 +6,7 @@ import { StudentTopBar } from './StudentTopBar.js';
 import { StudentStage } from './StudentStage.js';
 import { StudentBottomBar } from './StudentBottomBar.js';
 import { StudentChatSidebar } from './StudentChatSidebar.js';
-import { WaitingScreen } from './WaitingScreen.js';
+import { WaitingScreen } from './WaitingScreen';
 import { useReceiveOnlyGuard } from '../../lib/useReceiveOnlyGuard.js';
 
 export function ClassroomUI({ joined, onLeft }: { joined: JoinedState; onLeft: () => void }): JSX.Element {

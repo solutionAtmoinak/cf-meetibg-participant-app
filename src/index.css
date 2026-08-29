@@ -5,40 +5,43 @@
  * SINGLE_ACTIVE_HOST_PRESENTER.md / participant-screen.png) shares one
  * visual language with the teacher's classroom instead of two different
  * apps looking like two different products. This app is a viewer-only
- * surface, so — like host-app — it commits to a single dark presentation
- * rather than also supporting a light theme.
+ * surface, so — like host-app — it commits to a single light presentation
+ * rather than also supporting a dark theme.
  */
 @theme {
-  --color-bg: #0a0d16;
-  --color-bg-elevated: #0f1320;
-  --color-panel-bg: rgba(22, 27, 44, 0.92);
-  --color-panel-bg-solid: #171c2e;
-  --color-panel-bg-soft: rgba(255, 255, 255, 0.04);
-  --color-border: rgba(255, 255, 255, 0.09);
-  --color-border-strong: rgba(255, 255, 255, 0.16);
-  --color-text: #f3f4f8;
-  --color-text-dim: #a3a8c0;
-  --color-text-faint: #6d7290;
-  --color-accent: #7c5cff;
-  --color-accent-hover: #8f72ff;
-  --color-accent-soft: rgba(124, 92, 255, 0.18);
-  --color-danger: #ef4444;
-  --color-danger-hover: #f65a5a;
-  --color-danger-soft: rgba(239, 68, 68, 0.16);
-  --color-success: #22c55e;
-  --color-warning: #f59e0b;
+  --color-bg: #e4ecf8;
+  --color-bg-elevated: #f2f7fd;
+  --color-panel-bg: rgba(242, 247, 253, 0.94);
+  --color-panel-bg-solid: #f2f7fd;
+  --color-panel-bg-soft: rgba(37, 99, 235, 0.08);
+  --color-border: rgba(30, 58, 95, 0.14);
+  --color-border-strong: rgba(30, 58, 95, 0.24);
+  --color-text: #0f1f3a;
+  --color-text-dim: #43597a;
+  --color-text-faint: #8098bb;
+  --color-accent: #2563eb;
+  --color-accent-hover: #1d4ed8;
+  --color-accent-soft: rgba(37, 99, 235, 0.12);
+  --color-danger: #dc2626;
+  --color-danger-hover: #b91c1c;
+  --color-danger-soft: rgba(220, 38, 38, 0.10);
+  --color-success: #16a34a;
+  --color-warning: #b45309;
+  --color-stage: #cfdcf0;
 
   --radius-sm: 8px;
   --radius-md: 14px;
   --radius-lg: 20px;
   --radius-pill: 999px;
 
-  --shadow-panel: 0 12px 32px rgba(0, 0, 0, 0.45);
-  --shadow-float: 0 8px 24px rgba(0, 0, 0, 0.5);
+  --shadow-panel: 0 12px 32px rgba(30, 58, 95, 0.14);
+  --shadow-float: 0 8px 24px rgba(30, 58, 95, 0.16);
 
   --font-sans: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
 
   --animate-pulse-dot: pulse-dot 1.6s ease-in-out infinite;
+  --animate-spin-slow: spin-slow 1.1s linear infinite;
+  --animate-rise: rise 1.4s ease-in-out infinite;
 }
 
 @keyframes pulse-dot {
@@ -51,8 +54,26 @@
   }
 }
 
+@keyframes spin-slow {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes rise {
+  0%,
+  100% {
+    transform: translateY(0);
+    opacity: 0.45;
+  }
+  50% {
+    transform: translateY(-6px);
+    opacity: 1;
+  }
+}
+
 :root {
-  color-scheme: dark;
+  color-scheme: light;
 }
 
 * {
@@ -106,7 +127,7 @@ button {
   justify-content: center;
   width: 100vw;
   height: 100vh;
-  background: #000;
+  background: var(--color-stage);
 }
 
 [data-testid="presenter-camera-tile"]:fullscreen video,

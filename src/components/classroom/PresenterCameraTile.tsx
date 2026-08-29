@@ -43,10 +43,10 @@ export function PresenterCameraTile({
 
   const positionClass = isMaximized
     ? // Stage colour, not black — see the note in PresenterScreenTile.
-      'fixed inset-0 z-50 bg-bg flex items-center justify-center'
+      'fixed inset-0 z-50 bg-stage flex items-center justify-center'
     : pip
-      ? 'absolute z-20 bottom-4 left-4 w-[clamp(120px,20vw,200px)] aspect-4/3 rounded-md overflow-hidden border border-border-strong shadow-float bg-black max-[720px]:w-[clamp(96px,30vw,140px)] max-[720px]:bottom-24'
-      : 'relative w-full h-full flex items-center justify-center overflow-hidden bg-black';
+      ? 'absolute z-20 bottom-4 left-4 w-[clamp(120px,20vw,200px)] aspect-4/3 rounded-md overflow-hidden border border-border-strong shadow-float bg-stage max-[720px]:w-[clamp(96px,30vw,140px)] max-[720px]:bottom-24'
+      : 'relative w-full h-full flex items-center justify-center overflow-hidden bg-stage';
 
   return (
     <div ref={containerRef} data-testid="presenter-camera-tile" className={positionClass}>
@@ -71,7 +71,7 @@ export function PresenterCameraTile({
           told the student nothing they didn't already know while covering part
           of the picture. */}
       <button
-        className={`absolute top-2 right-2 z-10 flex items-center justify-center rounded-full bg-black/60 border border-white/25 text-white cursor-pointer transition-colors hover:bg-black/80 ${
+        className={`absolute top-2 right-2 z-10 flex items-center justify-center rounded-full bg-panel-bg border border-border text-text cursor-pointer transition-colors hover:bg-panel-bg-solid hover:border-border-strong ${
           expanded && !pip ? 'w-9 h-9' : 'w-6 h-6'
         }`}
         onClick={toggleMaximize}

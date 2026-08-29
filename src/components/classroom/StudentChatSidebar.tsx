@@ -22,7 +22,7 @@ const sidePanelBase =
   'absolute top-4 bottom-4 right-4 z-[45] w-[min(360px,88vw)] bg-panel-bg-solid border border-border rounded-lg shadow-panel flex flex-col overflow-hidden transition-[transform,opacity] duration-[220ms] ease-in-out max-[720px]:top-[0.6rem] max-[720px]:bottom-[0.6rem] max-[720px]:right-[0.6rem] max-[720px]:w-[calc(100vw-1.2rem)]';
 const sidePanelOpen = sidePanelBase;
 const sidePanelClosed = `${sidePanelBase} translate-x-[calc(100%+2rem)] opacity-0 pointer-events-none`;
-// No text "Teacher"/"Student" badges — a purple name background is the
+// No text "Teacher"/"Student" badges — a blue name background is the
 // teacher signal on its own, and self vs. other is carried by bubble
 // alignment/color instead.
 const teacherNameClass = 'py-[0.05rem] px-[0.4rem] rounded-pill bg-accent-soft text-accent-hover font-semibold shrink-0';
@@ -84,13 +84,13 @@ export function StudentChatSidebar({
       <div className="flex items-center justify-between gap-2 pt-4 px-4 pb-3 shrink-0 border-b border-border">
         <div>
           <h2 className="m-0 text-base font-semibold">Class chat</h2>
-          <span className="flex items-center gap-[0.35rem] text-[0.76rem] text-text-faint mt-[0.15rem]">
+          <span className="flex items-center gap-[0.35rem] text-[0.76rem] text-text-dim mt-[0.15rem]">
             <span className="w-1.5 h-1.5 rounded-full bg-success shrink-0" />
             {participants.length + 1} Online
           </span>
         </div>
         <button
-          className="inline-flex items-center justify-center w-7.5 h-7.5 rounded-sm border-none bg-transparent text-text-dim cursor-pointer shrink-0 transition-[background,color] duration-150 ease-in-out hover:bg-white/8 hover:text-text"
+          className="inline-flex items-center justify-center w-7.5 h-7.5 rounded-sm border-none bg-transparent text-text-dim cursor-pointer shrink-0 transition-[background,color] duration-150 ease-in-out hover:bg-panel-bg-soft hover:text-text"
           onClick={onClose}
           aria-label="Close chat panel"
           data-testid="close-chat"
@@ -100,12 +100,12 @@ export function StudentChatSidebar({
       </div>
 
       <ul ref={chatLogRef} className="list-none px-4 m-0 flex-1 overflow-y-auto flex flex-col gap-[0.65rem] py-3" data-testid="chat-log">
-        {messages.length === 0 && <li className="py-5 px-3 text-center text-text-faint text-[0.85rem]">No messages yet.</li>}
+        {messages.length === 0 && <li className="py-5 px-3 text-center text-text-dim text-[0.85rem]">No messages yet.</li>}
         {messages.map((m) =>
           m.type === 'custom' ? (
             <li
               key={m.id}
-              className="self-center max-w-full flex items-start gap-2 py-[0.6rem] px-[0.85rem] rounded-md bg-[rgba(245,158,11,0.12)] border border-[rgba(245,158,11,0.35)] text-[#fcd9a8] text-[0.85rem]"
+              className="self-center max-w-full flex items-start gap-2 py-[0.6rem] px-[0.85rem] rounded-md bg-[rgba(180,83,9,0.10)] border border-[rgba(180,83,9,0.30)] text-warning text-[0.85rem]"
             >
               <HiOutlineSpeakerphone size={16} className="shrink-0 mt-[0.15rem] text-warning" />
               <span>
@@ -124,7 +124,7 @@ export function StudentChatSidebar({
                 : 'bg-panel-bg-soft border border-border text-text rounded-bl-[4px]';
               return (
                 <li key={m.id} className={`flex flex-col max-w-[85%] ${isSelf ? 'self-end items-end' : 'self-start items-start'}`}>
-                  <span className={`text-[0.72rem] mb-[0.2rem] px-[0.2rem] ${role === 'Teacher' ? teacherNameClass : 'text-text-faint'}`}>
+                  <span className={`text-[0.72rem] mb-[0.2rem] px-[0.2rem] ${role === 'Teacher' ? teacherNameClass : 'text-text-dim'}`}>
                     {m.displayName}
                   </span>
                   <span className={`py-2 px-[0.8rem] rounded-md text-[0.87rem] leading-[1.35] wrap-break-word ${bubbleClass}`}>{m.message}</span>
@@ -148,7 +148,7 @@ export function StudentChatSidebar({
             className="flex-1 py-[0.6rem] px-[0.9rem] border border-border rounded-pill bg-panel-bg-soft text-text outline-none text-[0.88rem] transition-[border-color] duration-150 ease-in-out focus:border-accent"
           />
           <button
-            className="w-9.5 h-9.5 rounded-full border-none bg-accent text-white flex items-center justify-center cursor-pointer shrink-0 transition-[background] duration-150 ease-in-out hover:bg-accent-hover disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none"
+            className="w-9.5 h-9.5 rounded-full border-none bg-accent text-white flex items-center justify-center cursor-pointer shrink-0 transition-[background] duration-150 ease-in-out hover:bg-accent-hover disabled:bg-accent-soft disabled:text-accent disabled:cursor-not-allowed disabled:pointer-events-none"
             onClick={sendChat}
             disabled={!draft.trim()}
             aria-label="Send message"

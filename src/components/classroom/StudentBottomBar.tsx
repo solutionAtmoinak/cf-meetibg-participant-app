@@ -5,7 +5,7 @@ import { useReportedAction } from '../../lib/toast.js';
 
 const controlBtnBase =
   'relative flex items-center justify-center rounded-full border cursor-pointer shrink-0 transition-[background,transform,border-color] duration-150 ease-in-out active:scale-[0.95] disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none w-[46px] h-[46px] max-[720px]:w-[42px] max-[720px]:h-[42px]';
-const controlBtnDefault = `${controlBtnBase} border-border bg-panel-bg-soft text-text hover:border-border-strong hover:bg-white/9`;
+const controlBtnDefault = `${controlBtnBase} border-border bg-panel-bg-soft text-text hover:border-border-strong hover:bg-accent-soft`;
 const controlBtnOn = `${controlBtnBase} border-accent bg-accent text-white hover:bg-accent-hover`;
 const controlBtnDanger = `${controlBtnBase} border-danger bg-danger text-white hover:bg-danger-hover`;
 const controlDividerClass = 'w-px self-stretch my-1 mx-[0.15rem] bg-border shrink-0';

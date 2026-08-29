@@ -1,8 +1,11 @@
 import { useEffect } from 'react';
 import { useLocation, useNavigate, Navigate } from 'react-router-dom';
 import { RealtimeKitProvider, useRealtimeKitClient } from '@cloudflare/realtimekit-react';
+import { FiVideo } from 'react-icons/fi';
 import type { JoinedState } from '../types.js';
 import { ClassroomUI } from '../components/classroom/ClassroomUI.js';
+import { Loader, PulsingDots } from '../components/common/Loader.js';
+import { pageWrapClass } from '../components/common/formStyles.js';
 import { useToast } from '../lib/toast.js';
 
 export function Classroom(): JSX.Element {
@@ -38,7 +41,25 @@ export function Classroom(): JSX.Element {
   }
 
   if (!meeting) {
-    return <div className="p-8 text-center">Connecting…</div>;
+    // The literal "Connecting…" is kept verbatim: e2e/participant.spec.ts
+    // asserts on that exact text to prove the join handed off to the SDK.
+    return (
+      <div className={pageWrapClass} data-testid="connecting-screen">
+        <div className="flex flex-col items-center gap-4 text-center p-8">
+          <span className="relative flex items-center justify-center w-20 h-20">
+            <Loader size={80} className="absolute inset-0" />
+            <span className="flex items-center justify-center w-14 h-14 rounded-full bg-accent-soft text-accent">
+              <FiVideo size={26} />
+            </span>
+          </span>
+          <h1 className="m-0 text-[1.15rem] font-semibold text-text">Connecting…</h1>
+          <p className="m-0 max-w-80 text-[0.9rem] leading-relaxed text-text-dim">
+            Setting up your classroom — this usually takes a few seconds.
+          </p>
+          <PulsingDots />
+        </div>
+      </div>
+    );
   }
 
   return (

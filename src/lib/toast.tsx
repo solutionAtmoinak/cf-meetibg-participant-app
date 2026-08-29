@@ -43,8 +43,8 @@ export function ToastProvider({ children }: { children: ReactNode }): JSX.Elemen
         {toasts.map((t) => (
           <div
             key={t.id}
-            className={`rounded-md px-4 py-[0.6rem] text-white text-[0.9rem] shadow-[0_2px_8px_rgba(0,0,0,0.2)] ${
-              t.kind === 'success' ? 'bg-[#16a34a]' : 'bg-[#dc2626]'
+            className={`rounded-md px-4 py-[0.6rem] text-white text-[0.9rem] shadow-[0_2px_8px_rgba(15,23,42,0.08)] ${
+              t.kind === 'success' ? 'bg-success' : 'bg-danger'
             }`}
             data-testid={`toast-${t.kind}`}
           >

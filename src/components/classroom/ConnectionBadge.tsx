@@ -10,7 +10,7 @@ import { FiWifiOff } from 'react-icons/fi';
  *   nothing to collide with.
  */
 const badgeClass =
-  'absolute z-30 flex items-center gap-2 rounded-md bg-warning text-[#221200] font-medium shadow-float ' +
+  'absolute z-30 flex items-center gap-2 rounded-md bg-warning text-white font-medium shadow-float ' +
   'top-[4.75rem] right-4 py-2 px-3 text-[0.78rem] max-w-[min(20rem,55vw)] ' +
   'max-[720px]:top-auto max-[720px]:right-auto max-[720px]:bottom-[6.25rem] max-[720px]:left-1/2 ' +
   'max-[720px]:-translate-x-1/2 max-[720px]:w-max max-[720px]:max-w-[calc(100vw-1.5rem)] ' +
