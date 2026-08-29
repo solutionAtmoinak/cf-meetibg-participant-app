@@ -123,10 +123,13 @@ export function StudentStage({ sessionId }: { sessionId: string }): JSX.Element 
 
   return (
     <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,#161d33_0%,#0a0d16_70%)] overflow-hidden">
-      {/* Mounted on the presenter alone, and outside the visual branch below:
-          the teacher's voice must keep playing when their camera and screen
-          are both off, which is exactly the audio-only case. */}
-      {presenter && <PresenterAudio presenter={presenter} />}
+      {/* Mounted unconditionally, and outside the visual branch below, for two
+          reasons: the teacher's voice must keep playing when their camera and
+          screen are both off (the audio-only case), and on Safari the element
+          has to exist before the student taps — a tap is what grants it
+          permission to play, and one that lands while the stage is still
+          waiting must count. Passing no presenter simply means no tracks yet. */}
+      <PresenterAudio presenter={presenter} />
 
       {presenter && (hasVisual || audioOnly) ? (
         <>
