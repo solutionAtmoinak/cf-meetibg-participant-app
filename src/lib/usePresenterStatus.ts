@@ -23,7 +23,18 @@ export function usePresenterStatus(sessionId: string): PresenterStatusResult {
     let cancelled = false;
     const tick = async (): Promise<void> => {
       const status = await getPresenterStatus(sessionId);
-      if (!cancelled) setResult({ activePresenterId: status.activePresenterId, unavailable: Boolean(status.unavailable) });
+      if (cancelled) return;
+      const next: PresenterStatusResult = {
+        activePresenterId: status.activePresenterId,
+        unavailable: Boolean(status.unavailable),
+      };
+      // Returning a fresh object every poll re-rendered the whole stage — and
+      // with it the <video> subtree — every POLL_MS regardless of whether
+      // anything had actually changed. Keep the previous reference when the
+      // answer is the same.
+      setResult((prev) =>
+        prev.activePresenterId === next.activePresenterId && prev.unavailable === next.unavailable ? prev : next
+      );
     };
     void tick();
     const interval = setInterval(() => void tick(), POLL_MS);

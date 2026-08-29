@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'react';
 import type { RTKParticipant } from '@cloudflare/realtimekit-react';
 import { FiMaximize2, FiMinimize2 } from 'react-icons/fi';
 import { useMaximize } from '../../lib/useMaximize.js';
-import { useNetworkSpeed } from '../../lib/useNetworkSpeed.js';
 
 const badgeClass = 'text-[0.68rem] py-[0.12rem] px-[0.5rem] rounded-pill bg-white/15 text-white whitespace-nowrap shrink-0';
 
@@ -21,7 +20,6 @@ export function PresenterCameraTile({
 }): JSX.Element {
   const videoRef = useRef<HTMLVideoElement>(null);
   const { containerRef, isMaximized, toggleMaximize } = useMaximize<HTMLDivElement>();
-  const networkSpeed = useNetworkSpeed(participant);
   // Maximizing the PIP camera should read like the full presenter tile, not
   // a giant cropped thumbnail.
   const expanded = !pip || isMaximized;
@@ -29,12 +27,21 @@ export function PresenterCameraTile({
   useEffect(() => {
     // Remote audio playback is handled internally by the SDK's
     // AudioPlaybackManager once subscribed — only video needs a DOM element.
+    //
+    // registerVideoElement() binds whatever videoTrack is present *right
+    // now* and doesn't get called again on its own — for a remote
+    // participant that track can still be mid-subscription (unlike a local
+    // self-view, which always has its track ready immediately), so
+    // registering once on mount can permanently bind to "no track yet" and
+    // stay black even after the camera comes on. Re-run registration
+    // whenever videoEnabled flips or the track itself changes so a
+    // just-arrived track actually gets picked up.
     const videoEl = videoRef.current;
     if (videoEl) participant.registerVideoElement(videoEl);
     return () => {
       if (videoEl) participant.deregisterVideoElement(videoEl);
     };
-  }, [participant]);
+  }, [participant, participant.videoEnabled, participant.videoTrack?.id]);
 
   const positionClass = isMaximized
     ? 'fixed inset-0 z-50 bg-black flex items-center justify-center'
@@ -44,22 +51,26 @@ export function PresenterCameraTile({
 
   return (
     <div ref={containerRef} data-testid="presenter-camera-tile" className={positionClass}>
+      {/*
+        Muted deliberately, and it costs the student no audio:
+        registerVideoElement() wires only the video track (verified in the SDK
+        bundle — Participant.updateVideo does `i.addTrack(this.videoTrack)`
+        and never touches audioTrack). The teacher's sound is played by
+        PresenterAudio, which owns the only <audio> elements in the app.
+        Left unmuted, Chrome's autoplay policy rejects play() until a user
+        gesture, which can strand this element and take the *video* down too.
+      */}
       <video
         ref={videoRef}
         autoPlay
         playsInline
-        muted={false}
+        muted
         className={expanded ? 'max-w-full max-h-full object-contain block' : 'w-full h-full object-cover block'}
       />
       {expanded ? (
         <div className="absolute left-1/2 -translate-x-1/2 bottom-4 py-[0.45rem] px-[0.8rem] rounded-pill bg-black/70 text-white text-[0.82rem] font-medium flex gap-[0.5rem] items-center max-w-[calc(100%-2rem)]">
           <span className="truncate">{participant.name}</span>
           {!participant.videoEnabled && <span className={badgeClass}>camera off</span>}
-          {networkSpeed && (
-            <span className={badgeClass} title="Estimated data received">
-              {networkSpeed}
-            </span>
-          )}
         </div>
       ) : (
         <div className="absolute bottom-0 left-0 right-0 py-1 px-2 bg-[linear-gradient(0deg,rgba(0,0,0,0.75),transparent)] text-white text-[0.68rem] font-medium truncate">

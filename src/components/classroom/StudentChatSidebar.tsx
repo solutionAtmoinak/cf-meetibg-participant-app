@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useRealtimeKitMeeting, useRealtimeKitSelector } from '@cloudflare/realtimekit-react';
 import { FiX, FiSend } from 'react-icons/fi';
 import { HiOutlineSpeakerphone } from 'react-icons/hi';
@@ -15,8 +15,11 @@ interface ChatMessageLike {
   time: Date;
 }
 
+// z-[45]: above the floating bottom control bar (z-30) and alert banners
+// (z-40) so the drawer — and its message input at the bottom — is never
+// covered by them, on mobile in particular.
 const sidePanelBase =
-  'absolute top-4 bottom-4 right-4 z-20 w-[min(360px,88vw)] bg-panel-bg-solid border border-border rounded-lg shadow-panel flex flex-col overflow-hidden transition-[transform,opacity] duration-[220ms] ease-in-out max-[720px]:top-[0.6rem] max-[720px]:bottom-[0.6rem] max-[720px]:right-[0.6rem] max-[720px]:w-[calc(100vw-1.2rem)]';
+  'absolute top-4 bottom-4 right-4 z-[45] w-[min(360px,88vw)] bg-panel-bg-solid border border-border rounded-lg shadow-panel flex flex-col overflow-hidden transition-[transform,opacity] duration-[220ms] ease-in-out max-[720px]:top-[0.6rem] max-[720px]:bottom-[0.6rem] max-[720px]:right-[0.6rem] max-[720px]:w-[calc(100vw-1.2rem)]';
 const sidePanelOpen = sidePanelBase;
 const sidePanelClosed = `${sidePanelBase} translate-x-[calc(100%+2rem)] opacity-0 pointer-events-none`;
 // No text "Teacher"/"Student" badges — a purple name background is the
@@ -48,6 +51,7 @@ export function StudentChatSidebar({
   );
   const [messages, setMessages] = useState<ChatMessageLike[]>(meeting.chat.messages as ChatMessageLike[]);
   const [draft, setDraft] = useState('');
+  const chatLogRef = useRef<HTMLUListElement>(null);
 
   // ChatMessage carries userId (not peerId) for the sender — matches
   // Participant.userId, RealtimeKit's stable per-person id. Self is always
@@ -63,6 +67,11 @@ export function StudentChatSidebar({
       meeting.chat.off('chatUpdate', onUpdate);
     };
   }, [meeting]);
+
+  useEffect(() => {
+    const el = chatLogRef.current;
+    if (el) el.scrollTop = el.scrollHeight;
+  }, [messages]);
 
   const sendChat = reported('Message sent', async () => {
     if (!draft.trim()) throw new Error('Type a message first');
@@ -90,7 +99,7 @@ export function StudentChatSidebar({
         </button>
       </div>
 
-      <ul className="list-none px-4 m-0 flex-1 overflow-y-auto flex flex-col gap-[0.65rem] py-3" data-testid="chat-log">
+      <ul ref={chatLogRef} className="list-none px-4 m-0 flex-1 overflow-y-auto flex flex-col gap-[0.65rem] py-3" data-testid="chat-log">
         {messages.length === 0 && <li className="py-5 px-3 text-center text-text-faint text-[0.85rem]">No messages yet.</li>}
         {messages.map((m) =>
           m.type === 'custom' ? (

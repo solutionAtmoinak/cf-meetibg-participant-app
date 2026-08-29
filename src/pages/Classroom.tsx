@@ -15,7 +15,14 @@ export function Classroom(): JSX.Element {
 
   useEffect(() => {
     if (!joined) return;
-    initMeeting({ authToken: joined.authToken }).catch((err: unknown) => {
+    initMeeting({
+      authToken: joined.authToken,
+      // Students are receive-only (see ClassroomUI's onRoomJoined) — never
+      // let the preset auto-capture the mic/camera on join. Capturing and
+      // immediately disabling still spins up getUserMedia and an encoder,
+      // which is wasted CPU/bandwidth that hurts stream playback quality.
+      defaults: { audio: false, video: false },
+    }).catch((err: unknown) => {
       // A malformed/expired/invalid authToken fails right here, before any
       // room connection exists — `meeting` never gets set, so without this
       // the UI would otherwise sit stuck on "Connecting…" forever. Bounce

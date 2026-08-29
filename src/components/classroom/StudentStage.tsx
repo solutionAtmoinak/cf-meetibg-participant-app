@@ -1,7 +1,10 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useRealtimeKitMeeting, useRealtimeKitSelector } from '@cloudflare/realtimekit-react';
 import { FiMic, FiMicOff } from 'react-icons/fi';
 import { usePresenterStatus } from '../../lib/usePresenterStatus.js';
+import { useConnectionQuality } from '../../lib/useConnectionQuality.js';
+import { ConnectionBadge } from './ConnectionBadge.js';
+import { PresenterAudio } from './PresenterAudio.js';
 import { PresenterScreenTile } from './PresenterScreenTile.js';
 import { PresenterCameraTile } from './PresenterCameraTile.js';
 
@@ -13,19 +16,65 @@ import { PresenterCameraTile } from './PresenterCameraTile.js';
  */
 export function StudentStage({ sessionId }: { sessionId: string }): JSX.Element {
   const { meeting } = useRealtimeKitMeeting();
-  const participants = useRealtimeKitSelector((m) => m.participants.joined.toArray());
-  const { activePresenterId, unavailable } = usePresenterStatus(sessionId);
+  // `useRealtimeKitSelector` compares successive selector results with `!==`,
+  // and `participants.joined.toArray()` allocates a fresh array every call —
+  // so selecting the array directly re-rendered this component (and the
+  // <video> subtree under it) on *every* SDK event, including per-frame-ish
+  // activeSpeaker and audio-level updates. On a modest student machine that
+  // main-thread churn competes with the video decoder and shows up as
+  // playback jank. Select a stable string signature of only the fields the
+  // stage actually reads, and materialize the array only when it changes.
+  const participantsSignature = useRealtimeKitSelector((m) =>
+    m.participants.joined
+      .toArray()
+      .map((p) => `${p.id}:${p.name}:${p.videoEnabled ? 1 : 0}${p.screenShareEnabled ? 1 : 0}${p.audioEnabled ? 1 : 0}`)
+      .join('|')
+  );
+  const participants = useMemo(
+    () => meeting.participants.joined.toArray(),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [meeting, participantsSignature]
+  );
+  const { activePresenterId } = usePresenterStatus(sessionId);
   // When the lock service can't be reached (not deployed yet, or down),
   // "who's presenting" is unknown rather than "nobody" — fall back to
   // whoever happens to be publishing so a real class isn't stuck on a
   // waiting screen. Once the service answers, this strict-by-id lookup
   // takes over and is the only thing that can ever put someone on stage.
-  const presenter = activePresenterId
+  // The server's activePresenterId can go stale relative to what this
+  // device currently sees — e.g. the presenting host's session id changes
+  // on a reconnect, but the server-side lock still names the old id. Only a
+  // teacher-preset participant can ever have video/screen-share enabled (see
+  // SINGLE_ACTIVE_HOST_PRESENTER.md), so falling back to "whoever is
+  // visibly publishing" when the named id isn't found can never surface a
+  // student or an unauthorized publisher.
+  // The presenter lock PREFERS a presenter; it must never be able to HIDE
+  // one. The previous logic only fell back to "whoever is visibly publishing"
+  // when the lock service was unreachable — so while the Worker returned 503
+  // the class worked, and the moment the lock was fixed and began honestly
+  // answering `activePresenterId: null`, a teacher with camera and screen
+  // share live vanished behind "Waiting for the teacher...". The 503 had
+  // become load-bearing.
+  //
+  // Use the named presenter when the lock names someone we can actually see,
+  // otherwise show whoever is genuinely publishing. The lock goes stale in
+  // normal operation (a host reconnects with a new peer id; KV is eventually
+  // consistent) and none of that may blank the stage.
+  //
+  // This cannot surface the wrong person: students are barred from producing
+  // by the STUDENT preset (permissions.media.*.canProduce = NOT_ALLOWED) and
+  // by useReceiveOnlyGuard, so anyone publishing is a teacher. Self is
+  // excluded explicitly anyway.
+  const selfId = meeting.self.id;
+  const namedPresenter = activePresenterId
     ? participants.find((p) => p.id === activePresenterId)
-    : unavailable
-      ? participants.find((p) => p.videoEnabled || p.screenShareEnabled)
-      : undefined;
+    : undefined;
+  const visiblePublisher = participants.find(
+    (p) => p.id !== selfId && (p.videoEnabled || p.screenShareEnabled || p.audioEnabled)
+  );
+  const presenter = namedPresenter ?? visiblePublisher;
   const [speaking, setSpeaking] = useState(false);
+  const poorConnection = useConnectionQuality(presenter);
 
   useEffect(() => {
     setSpeaking(false);
@@ -40,12 +89,39 @@ export function StudentStage({ sessionId }: { sessionId: string }): JSX.Element 
   const screenOn = presenter?.screenShareEnabled ?? false;
   const cameraOn = presenter?.videoEnabled ?? false;
   const hasVisual = screenOn || cameraOn;
+  // A teacher talking with the camera off is still teaching. Gating the whole
+  // stage on hasVisual told those students "Waiting for the teacher…" — i.e.
+  // that nobody was there — while the teacher was mid-sentence.
+  const audioOnly = !hasVisual && (presenter?.audioEnabled ?? false);
 
   return (
     <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_0%,#161d33_0%,#0a0d16_70%)] overflow-hidden">
-      {presenter && hasVisual ? (
+      {/* Mounted on the presenter alone, and outside the visual branch below:
+          the teacher's voice must keep playing when their camera and screen
+          are both off, which is exactly the audio-only case. */}
+      {presenter && <PresenterAudio presenter={presenter} />}
+
+      {presenter && (hasVisual || audioOnly) ? (
         <>
-          {screenOn ? <PresenterScreenTile sharer={presenter} /> : <PresenterCameraTile participant={presenter} />}
+          {screenOn ? (
+            <PresenterScreenTile sharer={presenter} />
+          ) : cameraOn ? (
+            <PresenterCameraTile participant={presenter} />
+          ) : (
+            <div className="absolute inset-0 flex flex-col items-center justify-center gap-4 px-6 text-center">
+              <span
+                className={`w-24 h-24 rounded-full bg-[linear-gradient(135deg,var(--color-accent),#4f8cff)] flex items-center justify-center text-white text-[2rem] font-bold transition-shadow duration-200 ${
+                  speaking ? 'shadow-[0_0_0_10px_rgba(79,140,255,0.25)]' : ''
+                }`}
+              >
+                {presenter.name.trim().slice(0, 1).toUpperCase() || '?'}
+              </span>
+              <p className="text-white text-[1rem] font-semibold">{presenter.name}</p>
+              <p className="text-text-dim text-[0.9rem]" data-testid="audio-only-presenter">
+                {speaking ? 'Speaking — camera is off' : 'Teaching with camera off'}
+              </p>
+            </div>
+          )}
           {screenOn && cameraOn && <PresenterCameraTile participant={presenter} pip />}
 
           <div
@@ -63,6 +139,7 @@ export function StudentStage({ sessionId }: { sessionId: string }): JSX.Element 
               </span>
             </span>
           </div>
+
         </>
       ) : (
         <div className="absolute inset-0 flex items-center justify-center text-center px-6">
@@ -70,6 +147,13 @@ export function StudentStage({ sessionId }: { sessionId: string }): JSX.Element 
             Waiting for the teacher to share their camera or screen…
           </p>
         </div>
+      )}
+
+      {/* Outside the branch above: a weak connection is worth flagging even
+          while the stage is still waiting, since that wait may itself be the
+          network rather than the teacher. */}
+      {poorConnection && (
+        <ConnectionBadge message="Adjusting to your network — the class continues, video may pause briefly." />
       )}
     </div>
   );

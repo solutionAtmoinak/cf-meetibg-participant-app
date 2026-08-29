@@ -55,6 +55,16 @@ export async function getAppConfig(): Promise<AppConfig> {
           };
         }
       })
+      .catch((err) => {
+        const backendUrl = import.meta.env.DEV
+          ? import.meta.env.VITE_WORKER_URL
+          : "";
+        const config: AppConfig = {
+          backendUrl,
+        };
+        writeCached(config);
+        return config;
+      })
       .finally(() => {
         inFlight = null;
       });

@@ -44,7 +44,8 @@ const server = createServer(async (req, res) => {
 
   if (method === 'POST' && pathname === '/AnonymousDataGet/ExecuteJson/SPMasterAdminAnonymous/4') {
     return send(res, 200, {
-      WorkerUrl: `http://localhost:${port}`,
+      isSuccess: true,
+      result: JSON.stringify({ WorkerUrl: `http://localhost:${port}` }),
     });
   }
 

@@ -1,7 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { FiMaximize2, FiMinimize2 } from 'react-icons/fi';
 import { useMaximize } from '../../lib/useMaximize.js';
-import { useNetworkSpeed } from '../../lib/useNetworkSpeed.js';
 
 /**
  * RealtimeKit only auto-wires registerVideoElement() to the camera track —
@@ -12,10 +11,7 @@ interface ScreenSharer {
   name: string;
   screenShareEnabled: boolean;
   screenShareTracks: { video?: MediaStreamTrack; audio?: MediaStreamTrack };
-  producers?: readonly unknown[];
 }
-
-type ConsumerLike = { consumer?: { getStats?: () => Promise<RTCStatsReport> } };
 
 const badgeClass = 'text-[0.68rem] py-[0.12rem] px-[0.5rem] rounded-pill bg-white/15 text-white whitespace-nowrap shrink-0';
 
@@ -23,7 +19,6 @@ const badgeClass = 'text-[0.68rem] py-[0.12rem] px-[0.5rem] rounded-pill bg-whit
 export function PresenterScreenTile({ sharer }: { sharer: ScreenSharer }): JSX.Element {
   const videoRef = useRef<HTMLVideoElement>(null);
   const { containerRef, isMaximized, toggleMaximize } = useMaximize<HTMLDivElement>();
-  const networkSpeed = useNetworkSpeed({ producers: (sharer.producers ?? []) as ConsumerLike[] });
   const track = sharer.screenShareTracks.video;
   // Screen-share audio plays automatically via the SDK's own audio element,
   // not this <video> — its absence here means the presenter's browser never
@@ -62,11 +57,6 @@ export function PresenterScreenTile({ sharer }: { sharer: ScreenSharer }): JSX.E
         {!hasAudio && (
           <span className={badgeClass} title="No system/tab audio was captured for this share">
             no audio
-          </span>
-        )}
-        {networkSpeed && (
-          <span className={badgeClass} title="Estimated data received from this share">
-            {networkSpeed}
           </span>
         )}
       </div>

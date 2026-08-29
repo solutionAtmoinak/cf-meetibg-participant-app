@@ -1,19 +1,25 @@
 import { useRealtimeKitMeeting } from '@cloudflare/realtimekit-react';
 import { useEffect, useRef, useState } from 'react';
 import { useToast } from '../../lib/toast.js';
-import { EnableSoundBanner } from './EnableSoundBanner.js';
 import type { JoinedState } from '../../types.js';
 import { StudentTopBar } from './StudentTopBar.js';
 import { StudentStage } from './StudentStage.js';
 import { StudentBottomBar } from './StudentBottomBar.js';
 import { StudentChatSidebar } from './StudentChatSidebar.js';
 import { WaitingScreen } from './WaitingScreen.js';
+import { useReceiveOnlyGuard } from '../../lib/useReceiveOnlyGuard.js';
 
 export function ClassroomUI({ joined, onLeft }: { joined: JoinedState; onLeft: () => void }): JSX.Element {
   const { meeting } = useRealtimeKitMeeting();
   const { notifyError, notifySuccess } = useToast();
+  // Students never capture or publish anything. Enforced continuously, not
+  // just once on join — see useReceiveOnlyGuard.
+  useReceiveOnlyGuard();
   const [waiting, setWaiting] = useState(false);
-  const [chatOpen, setChatOpen] = useState(true);
+  // Closed by default: the stage is what a student joins for, and on a phone
+  // an open sidebar covers most of it. The unread badge on the chat button
+  // still surfaces new messages.
+  const [chatOpen, setChatOpen] = useState(false);
   const [unreadChatCount, setUnreadChatCount] = useState(0);
   const hasLeftRef = useRef(false);
   const hasJoinedRef = useRef(false);
@@ -29,17 +35,11 @@ export function ClassroomUI({ joined, onLeft }: { joined: JoinedState; onLeft: (
       onLeft();
     };
     const onWaitlisted = (): void => setWaiting(true);
-    const onRoomJoined = (): void => {
-      setWaiting(false);
-      // A student is receive-only until granted stage access (raise hand),
-      // and never gets camera/screen at all — but some presets auto-publish
-      // media on join regardless of that. Force everything off right after
-      // joining/rejoining so a preset default can never put a student on
-      // air without going through the raise-hand flow.
-      void meeting.self.disableAudio().catch(() => {});
-      void meeting.self.disableVideo().catch(() => {});
-      void meeting.self.disableScreenShare().catch(() => {});
-    };
+    // Keeping a student off air is no longer this handler's job — it lost the
+    // race against presets that auto-publish *after* join, and its unguarded
+    // disable*().catch() let a synchronous SDK throw unmount the classroom.
+    // useReceiveOnlyGuard now enforces it continuously and safely.
+    const onRoomJoined = (): void => setWaiting(false);
     const onRoomLeft = (payload: { state: string }): void => {
       if (payload.state === 'kicked') notifyError('You were removed from the session');
       else if (payload.state === 'ended') notifySuccess('The session has ended');
@@ -134,12 +134,14 @@ export function ClassroomUI({ joined, onLeft }: { joined: JoinedState; onLeft: (
   };
 
   if (waiting) {
+    // No audio sink needed here: there is no presenter to listen to yet.
+    // PresenterAudio mounts with the presenter on the stage and owns both
+    // playback and the autoplay prompt.
     return <WaitingScreen meetingTitle={joined.meetingTitle} />;
   }
 
   return (
     <div className="relative h-screen w-full overflow-hidden bg-bg">
-      <EnableSoundBanner />
       <StudentTopBar meetingTitle={joined.meetingTitle} />
       <StudentStage sessionId={joined.sessionId} />
       <StudentChatSidebar open={chatOpen} onClose={() => setChatOpen(false)} selfParticipantId={joined.participantId} />
