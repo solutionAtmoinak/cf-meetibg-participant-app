@@ -11,6 +11,7 @@ import { SessionEndedScreen } from './SessionEndedScreen.js';
 import type { ExitKind } from './SessionEndedScreen.js';
 import { useReceiveOnlyGuard } from '../../lib/useReceiveOnlyGuard.js';
 import { AudioControlProvider } from '../../lib/audioControl.js';
+import { CLASS_ENDED_BROADCAST } from '../../lib/classroomEvents.js';
 
 export function ClassroomUI({ joined, onLeft }: { joined: JoinedState; onLeft: () => void }): JSX.Element {
   const { meeting } = useRealtimeKitMeeting();
@@ -102,9 +103,20 @@ export function ClassroomUI({ joined, onLeft }: { joined: JoinedState; onLeft: (
       if (hasLeftRef.current || mediaFailTimer) return;
       mediaFailTimer = window.setTimeout(() => exitWith('disconnected'), MEDIA_FAIL_GRACE_MS);
     };
+    // Backstop for the class ending. The teacher's kickAll() is what normally
+    // gets us here (the SDK turns it into roomLeft('ended') above), but that
+    // call is gated on the teacher preset's `kickParticipant` permission —
+    // without it students were left staring at "waiting for the teacher" long
+    // after the class was over. Broadcasting is ungated on both ends, so the
+    // teacher always has a way to say so.
+    const onBroadcast = (payload: { type: string }): void => {
+      if (payload.type !== CLASS_ENDED_BROADCAST) return;
+      exitWith('ended');
+    };
     meeting.self.on('waitlisted', onWaitlisted);
     meeting.self.on('roomJoined', onRoomJoined);
     meeting.self.on('roomLeft', onRoomLeft);
+    meeting.participants.on('broadcastedMessage', onBroadcast);
     meeting.meta.on('mediaConnectionUpdate', onMediaState);
 
     // Circuit breaker: when ICE can never succeed (e.g. TURN unreachable),
@@ -137,6 +149,7 @@ export function ClassroomUI({ joined, onLeft }: { joined: JoinedState; onLeft: (
       meeting.self.off('waitlisted', onWaitlisted);
       meeting.self.off('roomJoined', onRoomJoined);
       meeting.self.off('roomLeft', onRoomLeft);
+      meeting.participants.off('broadcastedMessage', onBroadcast);
       meeting.meta.off('mediaConnectionUpdate', onMediaState);
       window.removeEventListener('unhandledrejection', onUnhandledRejection);
     };
