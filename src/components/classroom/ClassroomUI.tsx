@@ -6,17 +6,23 @@ import { StudentTopBar } from './StudentTopBar.js';
 import { StudentStage } from './StudentStage.js';
 import { StudentBottomBar } from './StudentBottomBar.js';
 import { StudentChatSidebar } from './StudentChatSidebar.js';
-import { WaitingScreen } from './WaitingScreen';
+import { WaitingScreen } from './WaitingScreen.js';
+import { SessionEndedScreen } from './SessionEndedScreen.js';
+import type { ExitKind } from './SessionEndedScreen.js';
 import { useReceiveOnlyGuard } from '../../lib/useReceiveOnlyGuard.js';
 import { AudioControlProvider } from '../../lib/audioControl.js';
 
 export function ClassroomUI({ joined, onLeft }: { joined: JoinedState; onLeft: () => void }): JSX.Element {
   const { meeting } = useRealtimeKitMeeting();
-  const { notifyError, notifySuccess } = useToast();
+  const { notifyError } = useToast();
   // Students never capture or publish anything. Enforced continuously, not
   // just once on join — see useReceiveOnlyGuard.
   useReceiveOnlyGuard();
   const [waiting, setWaiting] = useState(false);
+  // Non-null once the class is over for this student, whatever the reason.
+  // Replaces "navigate away + toast", which left them on the join page with
+  // an error for what is usually a perfectly normal end of lesson.
+  const [exit, setExit] = useState<ExitKind | null>(null);
   // Closed by default: the stage is what a student joins for, and on a phone
   // an open sidebar covers most of it. The unread badge on the chat button
   // still surfaces new messages.
@@ -35,18 +41,57 @@ export function ClassroomUI({ joined, onLeft }: { joined: JoinedState; onLeft: (
       void meeting.leave().catch(() => { });
       onLeft();
     };
+    // A media failure often arrives moments BEFORE roomLeft('ended') when a
+    // teacher ends the class - the transport dies as a consequence of the room
+    // closing. Declaring "connection lost" immediately would mislabel a normal
+    // ending as a fault, so hold briefly and let roomLeft win if it is coming.
+    let mediaFailTimer = 0;
+    const MEDIA_FAIL_GRACE_MS = 2500;
+
+    // Show a terminal screen instead of navigating away. Tears the SDK down
+    // the same way leaveOnce does, but keeps the student here so they can
+    // read what happened.
+    const exitWith = (kind: ExitKind): void => {
+      if (hasLeftRef.current) return;
+      hasLeftRef.current = true;
+      window.clearTimeout(mediaFailTimer);
+      void meeting.leave().catch(() => { });
+      setExit(kind);
+    };
+
     const onWaitlisted = (): void => setWaiting(true);
     // Keeping a student off air is no longer this handler's job — it lost the
     // race against presets that auto-publish *after* join, and its unguarded
     // disable*().catch() let a synchronous SDK throw unmount the classroom.
     // useReceiveOnlyGuard now enforces it continuously and safely.
     const onRoomJoined = (): void => setWaiting(false);
+    // The SDK's LeaveRoomState is 'kicked' | 'ended' | 'left' | 'rejected' |
+    // 'connected-meeting' | 'disconnected' | 'failed' | 'stageLeft'. The old
+    // handler named only three and dumped the rest into
+    // notifyError(`Disconnected from session (…)`) — so a class ending on
+    // anything but the exact string 'ended' told the student something had
+    // gone wrong. Every state is now mapped deliberately.
     const onRoomLeft = (payload: { state: string }): void => {
-      if (payload.state === 'kicked') notifyError('You were removed from the session');
-      else if (payload.state === 'ended') notifySuccess('The session has ended');
-      else if (payload.state === 'rejected') notifyError('The teacher denied your entry request');
-      else notifyError(`Disconnected from session (${payload.state})`);
-      leaveOnce();
+      switch (payload.state) {
+        case 'left':
+        case 'stageLeft':
+        case 'connected-meeting':
+          // The student's own doing (or an internal transition) — no
+          // announcement needed, just go back.
+          leaveOnce();
+          return;
+        case 'ended':
+          exitWith('ended');
+          return;
+        case 'kicked':
+          exitWith('kicked');
+          return;
+        case 'rejected':
+          exitWith('rejected');
+          return;
+        default:
+          exitWith('disconnected');
+      }
     };
     // ICE/TURN failures on the media (audio/video) transport surface here,
     // not via 'roomLeft' — the SDK retries internally forever without ever
@@ -54,8 +99,8 @@ export function ClassroomUI({ joined, onLeft }: { joined: JoinedState; onLeft: (
     // except for console spam. Catch it and bail out instead.
     const onMediaState = (update: { state: string }): void => {
       if (update.state !== 'failed') return;
-      notifyError('Lost connection to the session (network/TURN failure) — check your network and rejoin');
-      leaveOnce();
+      if (hasLeftRef.current || mediaFailTimer) return;
+      mediaFailTimer = window.setTimeout(() => exitWith('disconnected'), MEDIA_FAIL_GRACE_MS);
     };
     meeting.self.on('waitlisted', onWaitlisted);
     meeting.self.on('roomJoined', onRoomJoined);
@@ -83,12 +128,12 @@ export function ClassroomUI({ joined, onLeft }: { joined: JoinedState; onLeft: (
       }
       transportErrorCount += 1;
       if (transportErrorCount < TRANSPORT_ERROR_THRESHOLD) return;
-      notifyError('Lost connection to the session (network/TURN failure) — check your network and rejoin');
-      leaveOnce();
+      exitWith('disconnected');
     };
     window.addEventListener('unhandledrejection', onUnhandledRejection);
 
     return () => {
+      window.clearTimeout(mediaFailTimer);
       meeting.self.off('waitlisted', onWaitlisted);
       meeting.self.off('roomJoined', onRoomJoined);
       meeting.self.off('roomLeft', onRoomLeft);
@@ -133,6 +178,15 @@ export function ClassroomUI({ joined, onLeft }: { joined: JoinedState; onLeft: (
     await meeting.leave();
     onLeft();
   };
+
+  // Checked before `waiting`, and before the stage: once the room is gone the
+  // stage would otherwise keep showing "Waiting for the teacher to share their
+  // camera or screen…", because all it can see is that the presenter left the
+  // participant list. That was the bug — "still waiting" and an error toast,
+  // for a class that had simply finished.
+  if (exit) {
+    return <SessionEndedScreen kind={exit} meetingTitle={joined.meetingTitle} onBack={onLeft} />;
+  }
 
   if (waiting) {
     // No audio sink needed here: there is no presenter to listen to yet.
