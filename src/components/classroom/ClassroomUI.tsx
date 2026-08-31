@@ -8,6 +8,7 @@ import { StudentBottomBar } from './StudentBottomBar.js';
 import { StudentChatSidebar } from './StudentChatSidebar.js';
 import { WaitingScreen } from './WaitingScreen';
 import { useReceiveOnlyGuard } from '../../lib/useReceiveOnlyGuard.js';
+import { AudioControlProvider } from '../../lib/audioControl.js';
 
 export function ClassroomUI({ joined, onLeft }: { joined: JoinedState; onLeft: () => void }): JSX.Element {
   const { meeting } = useRealtimeKitMeeting();
@@ -141,16 +142,22 @@ export function ClassroomUI({ joined, onLeft }: { joined: JoinedState; onLeft: (
   }
 
   return (
-    <div className="relative h-screen w-full overflow-hidden bg-bg">
-      <StudentTopBar meetingTitle={joined.meetingTitle} />
-      <StudentStage sessionId={joined.sessionId} />
-      <StudentChatSidebar open={chatOpen} onClose={() => setChatOpen(false)} selfParticipantId={joined.participantId} />
-      <StudentBottomBar
-        chatOpen={chatOpen}
-        onToggleChat={() => setChatOpen((v) => !v)}
-        unreadChatCount={unreadChatCount}
-        onLeave={leave}
-      />
-    </div>
+    // The provider spans the stage and the toolbar because the two halves of
+    // the volume control live in each: PresenterAudio owns the only <audio>
+    // elements (so that only the presenter's tracks can ever reach a sink),
+    // while the control the student actually touches belongs in the bottom bar.
+    <AudioControlProvider>
+      <div className="relative h-screen w-full overflow-hidden bg-bg">
+        <StudentTopBar meetingTitle={joined.meetingTitle} />
+        <StudentStage sessionId={joined.sessionId} />
+        <StudentChatSidebar open={chatOpen} onClose={() => setChatOpen(false)} selfParticipantId={joined.participantId} />
+        <StudentBottomBar
+          chatOpen={chatOpen}
+          onToggleChat={() => setChatOpen((v) => !v)}
+          unreadChatCount={unreadChatCount}
+          onLeave={leave}
+        />
+      </div>
+    </AudioControlProvider>
   );
 }
