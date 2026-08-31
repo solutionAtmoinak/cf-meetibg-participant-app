@@ -49,8 +49,22 @@ export function PresenterScreenTile({ sharer }: { sharer: ScreenSharer }): JSX.E
           : 'relative w-full h-full flex items-center justify-center'
       }
     >
-      {/* object-contain, never object-cover: shared teaching content (slides, code, documents) must never be cropped. */}
-      <video ref={videoRef} autoPlay playsInline muted className="max-w-full max-h-full object-contain block" />
+      {/*
+        w-full h-full, NOT max-w-full max-h-full. A <video> with only max-*
+        constraints has `width: auto`, so it lays out at the stream's own
+        pixel size — capped by the container, never grown to it. That made
+        the shared screen render as a small box adrift in the middle of the
+        stage, and at 300x150 (the spec's default for a video with no frames
+        yet) for the first moments of every share. It then appeared to "fix
+        itself" whenever the teacher changed a quality setting, because
+        renegotiating raised the stream resolution and the element simply
+        tracked it. Giving the element a definite box makes object-contain
+        the thing that decides the picture size.
+
+        object-contain, never object-cover: shared teaching content (slides,
+        code, documents) must never be cropped.
+      */}
+      <video ref={videoRef} autoPlay playsInline muted className="w-full h-full object-contain block" />
       {/* Nothing is drawn over the shared screen. The only control is the
           maximize/restore button below — students are here to read the
           teacher's content, and a caption sitting on top of it (or in the

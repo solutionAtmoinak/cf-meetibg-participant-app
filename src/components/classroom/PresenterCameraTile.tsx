@@ -64,7 +64,12 @@ export function PresenterCameraTile({
         autoPlay
         playsInline
         muted
-        className={expanded ? 'max-w-full max-h-full object-contain block' : 'w-full h-full object-cover block'}
+        // Both branches size the element to its container and let object-fit
+        // decide the picture — see the note in PresenterScreenTile on why
+        // max-* alone leaves a <video> at its own stream resolution.
+        // contain when it owns the stage (never crop the teacher's content),
+        // cover in the fixed-aspect PIP (never letterbox a thumbnail).
+        className={expanded ? 'w-full h-full object-contain block' : 'w-full h-full object-cover block'}
       />
       {/* No name caption and no "camera off" badge, in either the full or PIP
           size. There is exactly one presenter on this stage, so labelling them
