@@ -14,9 +14,12 @@ const MUTED_KEY = 'rtk:class-muted';
  * PresenterAudio applies `volume`/`muted` to its elements and reports whether
  * the browser is actually refusing to play; VolumeMenu renders the UI.
  *
- * Preference is persisted: a student who turns the class down because they're
- * in a shared room should not have it snap back to full every time the teacher
- * toggles a track.
+ * Stored in sessionStorage, not localStorage. Turning the class down is a
+ * reaction to right now — a shared room, a noisy office — not a standing
+ * preference. sessionStorage survives a refresh mid-lesson, then clears itself
+ * when the student closes the tab, so nobody joins a later class silently
+ * muted and concludes the teacher's microphone is broken. It is also per-tab,
+ * so two classes open side by side do not fight over one setting.
  */
 export interface AudioControl {
   /** 0..1 */
@@ -38,7 +41,7 @@ const AudioControlContext = createContext<AudioControl | null>(null);
 
 function readNumber(key: string, fallback: number): number {
   try {
-    const raw = localStorage.getItem(key);
+    const raw = sessionStorage.getItem(key);
     if (raw === null) return fallback;
     const n = Number(raw);
     return Number.isFinite(n) && n >= 0 && n <= 1 ? n : fallback;
@@ -49,7 +52,7 @@ function readNumber(key: string, fallback: number): number {
 
 function readBool(key: string, fallback: boolean): boolean {
   try {
-    const raw = localStorage.getItem(key);
+    const raw = sessionStorage.getItem(key);
     return raw === null ? fallback : raw === 'true';
   } catch {
     return fallback;
@@ -58,7 +61,7 @@ function readBool(key: string, fallback: boolean): boolean {
 
 function write(key: string, value: string): void {
   try {
-    localStorage.setItem(key, value);
+    sessionStorage.setItem(key, value);
   } catch {
     // Private mode / blocked storage — in-memory state still drives this session.
   }
