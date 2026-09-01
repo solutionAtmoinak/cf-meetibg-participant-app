@@ -27,6 +27,11 @@
   --color-danger-soft: rgba(220, 38, 38, 0.10);
   --color-success: #16a34a;
   --color-warning: #b45309;
+  /* Card surface and recessed field well. The surface stack (ground ->
+     card -> field) is what gives the forms depth; before this the card was
+     a translucent blue on a blue ground and had no visible edge at all. */
+  --color-surface: #ffffff;
+  --color-field: #f4f8fd;
   --color-stage: #cfdcf0;
 
   --radius-sm: 8px;
@@ -35,6 +40,9 @@
   --radius-pill: 999px;
 
   --shadow-panel: 0 12px 32px rgba(30, 58, 95, 0.14);
+  /* Layered rather than one blur: a tight contact shadow, a mid lift and a
+     wide ambient pool. That is what reads as a card resting on a page. */
+  --shadow-card: 0 1px 2px rgba(16, 40, 80, 0.05), 0 14px 34px -10px rgba(16, 40, 80, 0.18), 0 36px 70px -30px rgba(16, 40, 80, 0.14);
   --shadow-float: 0 8px 24px rgba(30, 58, 95, 0.16);
 
   --font-sans: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
