@@ -2,7 +2,7 @@
 // like VolumeMenu, which live in their own file — stays visually identical.
 // Mirrors host-app/src/components/classroom/controlStyles.ts.
 export const controlBtnBase =
-  'relative flex items-center justify-center rounded-full border cursor-pointer shrink-0 transition-[background,transform,border-color] duration-150 ease-in-out active:scale-[0.95] disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none w-[46px] h-[46px] max-[720px]:w-[42px] max-[720px]:h-[42px]';
+  'relative flex items-center justify-center rounded-full border cursor-pointer shrink-0 transition-[background,border-color] duration-150 ease-in-out disabled:opacity-40 disabled:cursor-not-allowed disabled:pointer-events-none w-[44px] h-[44px] max-[720px]:w-[40px] max-[720px]:h-[40px]';
 
 export const controlBtnDefault = `${controlBtnBase} border-border bg-panel-bg-soft text-text hover:border-border-strong hover:bg-accent-soft`;
 export const controlBtnOn = `${controlBtnBase} border-accent bg-accent text-white hover:bg-accent-hover`;

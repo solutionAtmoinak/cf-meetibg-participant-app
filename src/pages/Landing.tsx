@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
-import { FaClock } from 'react-icons/fa6';
+import { FaGraduationCap } from 'react-icons/fa6';
+import { FiLogIn } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
 import { errorMessage } from '../lib/errorMessage.js';
 import { maskId } from '../lib/mask.js';
@@ -8,12 +9,25 @@ import { joinSession } from '../api/sessionApi.js';
 import { useToast } from '../lib/toast.js';
 import type { JoinedState } from '../types.js';
 import {
-  btnSecondaryClass,
+  brandLockupClass,
+  brandMarkClass,
+  brandNameClass,
+  brandRoleClass,
+  brandTextWrapClass,
+  btnPrimaryClass,
+  btnSpinnerClass,
+  cardBodyClass,
+  cardHeaderClass,
+  fieldHintClass,
   fieldInputClass,
   fieldLabelClass,
+  fieldLabelTextClass,
+  pageColumnClass,
+  pageFootnoteClass,
   pageWrapClass,
   sectionClass,
   sectionHeadingClass,
+  sectionSubtitleClass,
 } from '../components/common/formStyles.js';
 
 export interface StudentJoinParams {
@@ -85,14 +99,24 @@ export function Landing(): JSX.Element {
 
   return (
     <div className={pageWrapClass}>
-      <div className="w-full max-w-120">
+      <div className={pageColumnClass}>
+        <div className={brandLockupClass}>
+          <span className={brandMarkClass}>
+            <FaGraduationCap size={18} />
+          </span>
+          <span className={brandTextWrapClass}>
+            <span className={brandNameClass}>DTH Live Classroom</span>
+            <span className={brandRoleClass}>Student / Participant</span>
+          </span>
+        </div>
+
         <section className={sectionClass}>
-          <h2 className={sectionHeadingClass}>
-            <FaClock /> Join Your Classroom
-          </h2>
-          <form onSubmit={joinByFormSubmit}>
+          <header className={cardHeaderClass}>
+            <h2 className={sectionHeadingClass}>Join your classroom</h2>
+          </header>
+          <form onSubmit={joinByFormSubmit} className={cardBodyClass}>
             <label className={fieldLabelClass}>
-              Your name
+              <span className={fieldLabelTextClass}>Your name</span>
               <input
                 name="name"
                 defaultValue={urlName || undefined}
@@ -101,10 +125,14 @@ export function Landing(): JSX.Element {
                 data-testid="name-input"
                 className={fieldInputClass}
               />
+              <span className={fieldHintClass}>
+                {/* How your teacher sees you in the class list. */}
+
+              </span>
             </label>
 
             <label className={fieldLabelClass}>
-              User id
+              <span className={fieldLabelTextClass}>User id</span>
               {urlUserId ? (
                 <input value={maskId(urlUserId)} disabled readOnly data-testid="user-id-input" className={fieldInputClass} />
               ) : (
@@ -118,7 +146,7 @@ export function Landing(): JSX.Element {
             </label>
 
             <label className={fieldLabelClass}>
-              Session id
+              <span className={fieldLabelTextClass}>Session id</span>
               {urlSessionId ? (
                 <input value={maskId(urlSessionId)} disabled readOnly data-testid="session-id-input" className={fieldInputClass} />
               ) : (
@@ -131,11 +159,25 @@ export function Landing(): JSX.Element {
               )}
             </label>
 
-            <button type="submit" className={btnSecondaryClass} disabled={busy} data-testid="join-session-button">
-              {busy ? 'Joining…' : 'Join Classroom'}
+            <button type="submit" className={btnPrimaryClass} disabled={busy} data-testid="join-session-button">
+              {busy ? (
+                <>
+                  <span className={btnSpinnerClass} />
+                  Joining…
+                </>
+              ) : (
+                <>
+                  <FiLogIn size={16} />
+                  Join Classroom
+                </>
+              )}
             </button>
           </form>
         </section>
+
+        <p className={pageFootnoteClass}>
+
+        </p>
       </div>
     </div>
   );

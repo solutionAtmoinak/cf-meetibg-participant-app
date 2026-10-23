@@ -45,7 +45,7 @@ export function StudentBottomBar({
 
   return (
     <div
-      className="absolute left-1/2 bottom-4 -translate-x-1/2 z-30 flex items-center gap-2 bg-panel-bg border border-border rounded-pill p-2 shadow-float backdrop-blur-lg max-w-[calc(100vw-1rem)] overflow-x-auto max-[720px]:bottom-[0.6rem] max-[720px]:p-[0.4rem] max-[720px]:gap-[0.35rem]"
+      className="absolute left-1/2 bottom-4 -translate-x-1/2 z-30 flex items-center gap-2 bg-panel-bg-solid border border-border rounded-pill p-2 shadow-float max-w-[calc(100vw-1rem)] overflow-x-auto max-[720px]:bottom-[0.6rem] max-[720px]:p-[0.4rem] max-[720px]:gap-[0.35rem]"
       role="toolbar"
       aria-label="Classroom controls"
     >

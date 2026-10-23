@@ -1,43 +1,43 @@
 @import "tailwindcss";
 
 /*
- * Matches host-app's theme tokens so the redesigned student view (see
- * SINGLE_ACTIVE_HOST_PRESENTER.md / participant-screen.png) shares one
+ * Matches host-app's theme tokens so the redesigned student view shares one
  * visual language with the teacher's classroom instead of two different
- * apps looking like two different products. This app is a viewer-only
- * surface, so — like host-app — it commits to a single light presentation
- * rather than also supporting a dark theme.
+ * apps looking like two different products.
  */
 @theme {
-  --color-bg: #e4ecf8;
-  --color-bg-elevated: #f2f7fd;
-  --color-panel-bg: rgba(242, 247, 253, 0.94);
-  --color-panel-bg-solid: #f2f7fd;
-  --color-panel-bg-soft: rgba(37, 99, 235, 0.08);
-  --color-border: rgba(30, 58, 95, 0.14);
-  --color-border-strong: rgba(30, 58, 95, 0.24);
-  --color-text: #0f1f3a;
-  --color-text-dim: #43597a;
-  --color-text-faint: #8098bb;
-  --color-accent: #2563eb;
-  --color-accent-hover: #1d4ed8;
-  --color-accent-soft: rgba(37, 99, 235, 0.12);
-  --color-danger: #dc2626;
-  --color-danger-hover: #b91c1c;
-  --color-danger-soft: rgba(220, 38, 38, 0.10);
-  --color-success: #16a34a;
-  --color-warning: #b45309;
-  --color-stage: #cfdcf0;
+  --color-bg: #eef4f9; /* Soft light blue */
+  --color-bg-elevated: #ffffff;
+  --color-panel-bg: rgba(255, 255, 255, 0.96);
+  --color-panel-bg-solid: #ffffff;
+  --color-panel-bg-soft: rgba(99, 115, 140, 0.06);
+  --color-border: rgba(0, 0, 0, 0.08);
+  --color-border-strong: rgba(0, 0, 0, 0.15);
+  --color-text: #1a1d23;
+  --color-text-dim: #5f6775;
+  --color-text-faint: #9ca3af;
+  --color-accent: #3b82f6;
+  --color-accent-hover: #2563eb;
+  --color-accent-soft: rgba(59, 130, 246, 0.08);
+  --color-danger: #ef4444;
+  --color-danger-hover: #dc2626;
+  --color-danger-soft: rgba(239, 68, 68, 0.08);
+  --color-success: #22c55e;
+  --color-warning: #f59e0b;
+  --color-surface: #ffffff;
+  --color-field: #f3f7fb;
+  --color-stage: #e2ebf3;
 
-  --radius-sm: 8px;
-  --radius-md: 14px;
-  --radius-lg: 20px;
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
   --radius-pill: 999px;
 
-  --shadow-panel: 0 12px 32px rgba(30, 58, 95, 0.14);
-  --shadow-float: 0 8px 24px rgba(30, 58, 95, 0.16);
+  --shadow-panel: 0 4px 16px rgba(0, 0, 0, 0.08);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.06), 0 4px 16px rgba(0, 0, 0, 0.04);
+  --shadow-float: 0 2px 12px rgba(0, 0, 0, 0.1);
 
-  --font-sans: 'Segoe UI', system-ui, -apple-system, Roboto, sans-serif;
+  --font-sans: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
 
   --animate-pulse-dot: pulse-dot 1.6s ease-in-out infinite;
   --animate-spin-slow: spin-slow 1.1s linear infinite;
@@ -80,6 +80,10 @@
   box-sizing: border-box;
 }
 
+html {
+  font-size: 16px; /* Standard base text size */
+}
+
 html,
 body,
 #root {
@@ -99,8 +103,8 @@ button {
 }
 
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-thumb {
@@ -116,9 +120,7 @@ button {
  * :fullscreen can't be expressed as a Tailwind utility, and this project's
  * Tailwind version has no built-in `fullscreen:` variant, so the real
  * browser-Fullscreen layout for the presenter's camera/screen tiles stays as
- * plain CSS here, scoped to their stable data-testid attributes. The in-page
- * maximize fallback (used when the Fullscreen API is unavailable or denied)
- * is handled entirely with Tailwind classes in the components themselves.
+ * plain CSS here, scoped to their stable data-testid attributes.
  */
 [data-testid="presenter-camera-tile"]:fullscreen,
 [data-testid="presenter-screen-tile"]:fullscreen {

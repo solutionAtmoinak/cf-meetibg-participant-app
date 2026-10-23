@@ -95,7 +95,7 @@ export function VolumeMenu(): JSX.Element {
             ref={menuRef}
             role="dialog"
             aria-label="Class volume"
-            className="fixed z-50 w-58 p-3 rounded-md bg-panel-bg-solid border border-border shadow-panel backdrop-blur-md"
+            className="fixed z-50 w-58 p-3 rounded-md bg-panel-bg-solid border border-border shadow-panel"
             style={{ left: position.left, bottom: position.bottom }}
             data-testid="volume-menu-panel"
           >

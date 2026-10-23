@@ -1,5 +1,13 @@
 import { FiCheckCircle, FiLogIn, FiSlash, FiUserX, FiWifiOff } from 'react-icons/fi';
 import type { IconType } from 'react-icons';
+import {
+  btnPrimaryClass,
+  pageWrapClass,
+  statusBadgeClass,
+  statusBodyClass,
+  statusCardClass,
+  statusTitleClass,
+} from '../common/formStyles.js';
 
 /**
  * Why a screen and not a toast.
@@ -29,26 +37,26 @@ const COPY: Record<ExitKind, ExitCopy> = {
   ended: {
     Icon: FiCheckCircle,
     tone: 'accent',
-    title: 'Class has ended',
-    detail: 'Your teacher has finished the session. See you in the next class.',
+    title: 'Session Ended',
+    detail: 'The host has finished this session. Thank you for joining.',
   },
   kicked: {
     Icon: FiUserX,
     tone: 'warning',
-    title: 'You have left this class',
-    detail: 'Your teacher removed you from the session. Ask them for a new link if you need to rejoin.',
+    title: 'Disconnected from Session',
+    detail: 'You have been removed from this session by the host.',
   },
   rejected: {
     Icon: FiSlash,
     tone: 'warning',
-    title: 'Entry not approved',
-    detail: 'Your teacher did not admit you to this class. Check the session ID with them and try again.',
+    title: 'Entry Not Approved',
+    detail: 'The host did not admit you to this session. Please verify your invite and try again.',
   },
   disconnected: {
     Icon: FiWifiOff,
     tone: 'warning',
-    title: 'Connection lost',
-    detail: 'We could not keep the class connected. Check your network, then rejoin to continue.',
+    title: 'Connection Lost',
+    detail: 'We could not keep the session connected. Please check your network and try rejoining.',
   },
 };
 
@@ -62,29 +70,24 @@ export function SessionEndedScreen({
   onBack: () => void;
 }): JSX.Element {
   const { Icon, tone, title, detail } = COPY[kind];
+  // Same badge geometry as every other status screen; only the tone changes,
+  // so a finished class and a fault read as the same kind of moment rather
+  // than two different screens.
   const badgeClass =
-    tone === 'accent'
-      ? 'flex items-center justify-center w-16 h-16 rounded-full bg-accent-soft text-accent'
-      : 'flex items-center justify-center w-16 h-16 rounded-full bg-warning/15 text-warning';
+    tone === 'accent' ? statusBadgeClass : 'flex items-center justify-center w-14 h-14 rounded-full bg-warning/15 text-warning';
 
   return (
-    <div className="h-screen w-full flex items-center justify-center px-4 bg-bg" data-testid="session-ended-screen">
-      <div
-        className="flex flex-col items-center gap-4 text-center max-w-100 w-full p-8 rounded-lg border border-border bg-panel-bg-solid shadow-panel"
-        role="status"
-        data-exit-kind={kind}
-      >
+    <div className={`h-screen ${pageWrapClass}`} data-testid="session-ended-screen">
+      <div className={statusCardClass} role="status" data-exit-kind={kind}>
         <span className={badgeClass}>
-          <Icon size={26} />
+          <Icon size={24} />
         </span>
-        <h1 className="m-0 text-[1.15rem] font-semibold text-text">{title}</h1>
-        {meetingTitle && <p className="m-0 text-[0.9rem] font-medium text-text">{meetingTitle}</p>}
-        <p className="m-0 text-[0.9rem] leading-relaxed text-text-dim">{detail}</p>
-        <button
-          onClick={onBack}
-          className="mt-1 inline-flex items-center justify-center gap-2 py-[0.6rem] px-5 rounded-pill border-none bg-accent text-white text-[0.9rem] font-semibold cursor-pointer transition-colors hover:bg-accent-hover"
-          data-testid="back-to-join"
-        >
+        <span className="flex flex-col gap-1">
+          <h1 className={statusTitleClass}>{title}</h1>
+          {meetingTitle && <p className="m-0 text-[0.85rem] font-medium text-text-dim">{meetingTitle}</p>}
+        </span>
+        <p className={statusBodyClass}>{detail}</p>
+        <button onClick={onBack} className={`${btnPrimaryClass} mt-1`} data-testid="back-to-join">
           <FiLogIn size={16} />
           Back to join page
         </button>
