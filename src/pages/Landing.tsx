@@ -176,7 +176,6 @@ export function Landing(): JSX.Element {
         </section>
 
         <p className={pageFootnoteClass}>
-
         </p>
       </div>
     </div>

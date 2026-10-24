@@ -42,27 +42,9 @@ export const brandRoleClass = 'text-[0.85rem] text-text-dim';
 /*
  * The card.
  */
-export const sectionClass = 'rounded-lg border border-border bg-surface shadow-card overflow-hidden';
 export const cardHeaderClass = 'px-6 pt-6 pb-4 border-b border-border';
 export const sectionHeadingClass = 'm-0 text-[1.2rem] font-semibold text-text';
 export const sectionSubtitleClass = 'm-0 mt-1.5 text-[0.95rem] leading-relaxed text-text-dim';
-/** Owns the rhythm between fields, so no field has to carry its own margin. */
-export const cardBodyClass = 'px-6 py-5 flex flex-col gap-4';
-
-/*
- * Fields.
- */
-export const fieldLabelClass = 'flex flex-col gap-1.5';
-export const fieldLabelTextClass = 'text-[0.9rem] font-medium text-text-dim';
-export const fieldInputClass =
-  'w-full h-12 px-4 text-[1rem] rounded-md border border-border bg-field text-text outline-none transition-[border-color,box-shadow,background] duration-150 ease-in-out placeholder:text-text-faint hover:border-border-strong focus:border-accent focus:bg-surface focus:shadow-[0_0_0_3px_var(--color-accent-soft)] disabled:cursor-not-allowed disabled:text-text-faint disabled:bg-field';
-/** Sits under a field to explain it before the teacher gets it wrong, rather than after. */
-export const fieldHintClass = 'text-[0.85rem] leading-snug text-text-faint';
-
-export const btnBaseClass =
-  'w-full inline-flex items-center justify-center gap-2 h-12 px-5 rounded-md border text-[1rem] font-semibold transition-[background,border-color] duration-150 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed disabled:pointer-events-none cursor-pointer';
-export const btnPrimaryClass = `${btnBaseClass} border-transparent bg-accent text-white hover:bg-accent-hover`;
-export const btnSecondaryClass = `${btnBaseClass} border-border bg-surface text-text hover:border-border-strong hover:bg-panel-bg-soft`;
 /** In-button activity, so a slow join looks like progress and not a dead click. */
 export const btnSpinnerClass = 'w-4 h-4 rounded-full border-2 border-white/40 border-t-white animate-spin-slow shrink-0';
 
